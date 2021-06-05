@@ -10,7 +10,7 @@ from flask_mail import Message
 auth = Blueprint("auth", __name__)
 
 def send_mail(email):
-	msg = Message('Welcome to AT Center Inc.', sender = 'no-reply@atcenterinc.com', recipients = [email])
+	msg = Message('Welcome to AT Center Inc!', sender = 'no-reply@atcenterinc.com', recipients = [email])
 	msg.body = "Hello, welcome to AT Center Inc. \nChancho Chanchia, Chi!\n\n -Gracias"
 	mail.send(msg)
 
