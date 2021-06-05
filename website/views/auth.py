@@ -1,12 +1,18 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 # 2. Changed the hierarchy of the views
 from ..models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 # 2. Changed the hierarchy of the views
-from .. import db
+from .. import db, mail
 from flask_login import login_user, login_required, logout_user, current_user
+from flask_mail import Message
 
 auth = Blueprint("auth", __name__)
+
+def send_mail(email):
+	msg = Message('Welcome to AT Center Inc.', sender = 'no-reply@atcenterinc.com', recipients = [email])
+	msg.body = "Hello, welcome to AT Center Inc. \nChancho Chanchia, Chi!\n\n -Gracias"
+	mail.send(msg)
 
 @auth.route("/login", methods = ["GET", "POST"])
 def login():
@@ -54,6 +60,7 @@ def sign_up():
 			db.session.add(new_user)
 			db.session.commit()
 			login_user(new_user, remember = True)
+			send_mail(email)
 			flash("Account created!", category = "success")
 			return redirect(url_for("views.home"))
 	return render_template("sign_up.html", user = current_user)
