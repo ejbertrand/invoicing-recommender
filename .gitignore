@@ -6,9 +6,6 @@ __pycache__/
 # Database
 *.db
 
-# Init File
-__init__.py
-
 # C extensions
 *.so
 
