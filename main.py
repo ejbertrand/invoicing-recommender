@@ -1,4 +1,3 @@
-# 0. Changed the importing declaration of the website package
 import website as web
 
 app = web.create_app()
