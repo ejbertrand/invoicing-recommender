@@ -12,23 +12,24 @@ class User(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
 	email = db.Column(db.String(150), unique = True)
 	password = db.Column(db.String(150))
-	first_name = db.Column(db.String(50)
+	first_name = db.Column(db.String(50))
 #	notes = db.relationship('Note')
 
-class History(db.Model):
+class Transaction(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	client_name = db.Column(db.String(250))
 	date = db.Column(db.DateTime(timezone = True), default = func.now())
-	value = db.Column(db.Float)
 	service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
-	pay_met_id = db.Column(db.Integer, db.ForeignKey('paymentmethod.id'))
+	payment_id = db.Column(db.Integer, db.ForeignKey('payment.id'))
+	client_name = db.Column(db.String(100))
+	total = db.Column(db.Float)
+	comments = db.Column(db.String(250))
 
 class Service(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	type = db.Column(db.String(150), unique = True)
-	history = db.relationship('History')
+	type = db.Column(db.String(50), unique = True)
+	history = db.relationship('Transaction')
 
-class PaymentMethod(db.Model):
+class Payment(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	type = db.Column(db.String(100), unique = True)
-	history = db.relationship('History')
+	type = db.Column(db.String(50), unique = True)
+	history = db.relationship('Transaction')
