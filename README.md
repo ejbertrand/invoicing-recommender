@@ -1,6 +1,8 @@
 # invoicing-recommender
 
-This is a Full-Stack Python developed web application made on Flask. It combines Javascript, HTML + CSS (Bootstrap), and Python codes to make a basic system for transactions registering of any kind.
+This is a Full-Stack Python developed web application made on Flask. 
+
+It combines Javascript, HTML + CSS (Bootstrap), and Python codes to make a basic system for transactions registering of any kind.
 We can Configure different Payment Types, differnte Products, generate transactions and view the History of transactions.
 
 The project is still on development and will include:
