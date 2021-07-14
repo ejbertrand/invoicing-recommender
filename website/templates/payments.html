@@ -15,7 +15,7 @@
 </form>
 <ul class="list-group list-group-flush" id="notes">
 	{% for payment in payments %}
-	<li class="list-group-item">{{ payment.type }}
+	<li class="list-group-item">{{ payment.payment_type }}
     <button type="button" class="close" onClick="deletePayment({{ payment.id }})">
       <span aria-hidden="true">&times;</span>
     </button>

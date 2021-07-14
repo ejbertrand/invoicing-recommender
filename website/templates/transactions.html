@@ -9,9 +9,10 @@
 <table class="table table-hover">
   <thead>
     <tr>
-      <th scope="col">#</th>
 			<th scope="col">Date</th>
+			<th scope="col">User</th>
       <th scope="col">Service</th>
+			<th scope="col">Sub-Service</th>
       <th scope="col">Payment Method</th>
       <th scope="col">Client Name</th>
 			<th scope="col">Total</th>
@@ -21,13 +22,14 @@
   <tbody>
 		{% for transaction in transactions %}
     <tr>
-      <th scope="row">{{transaction.id}}</th>
-      <td>{{transaction.date}}</td>
-      <td>{{transaction.service_id}}</td>
-      <td>{{transaction.payment_id}}</td>
-			<td>{{transaction.client_name}}</td>
-			<td>${{transaction.total}}</td>
-			<td>{{transaction.comments}}</td>
+      <td>{{transaction[0]}}</td>
+			<td>{{transaction[1]}}</td>
+			<td>{{transaction[2]}}</td>
+			<td>{{transaction[3]}}</td>
+			<td>{{transaction[4]}}</td>
+			<td>{{transaction[5]}}</td>
+			<td>{{transaction[6]}}</td>
+			<td>{{transaction[7]}}</td>
     </tr>
 		{% endfor %}
   </tbody>

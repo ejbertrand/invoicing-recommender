@@ -15,7 +15,7 @@
 </form>
 <ul class="list-group list-group-flush" id="notes">
 	{% for service in services %}
-	<li class="list-group-item">{{ service.type }}
+	<li class="list-group-item">{{ service.service_type }}
     <button type="button" class="close" onClick="deleteService({{ service.id }})">
       <span aria-hidden="true">&times;</span>
     </button>
