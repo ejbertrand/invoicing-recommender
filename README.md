@@ -4,7 +4,7 @@ This is a Full-Stack Python developed web application made on Flask.
 
 It is built on top of Python (Flask + Jinja), using Javascript as API and HTML/CSS (Bootstrap) code.
 
-The purpose is to build a basic system for registering transactions and generating a printable invoice for them, on PDF format as well as being capable of sending it directly to a printer.
+The purpose of this project is to build an invoicing system, capable of registering transactions using different products/sub-products and payment types. Additionally, the invoice should be printable on PDF format as well as being able to send it directly to a printer. Finally, using the history and client behavior, the plan is for the system itself to recommend products based on past-behaviors of the clients as well as demographics.
 
 **Current State:**
 
