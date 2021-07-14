@@ -2,11 +2,14 @@
 
 This is a Full-Stack Python developed web application made on Flask. 
 
-It combines Javascript, HTML + CSS (Bootstrap), and Python codes to make a basic system for transactions registering of any kind.
-We can Configure different Payment Types, differnte Products, generate transactions and view the History of transactions.
+It is built on top of Python (Flask + Jinja), using Javascript as API and HTML/CSS (Bootstrap) code.
 
-The project is still on development and will include:
-- PDF generation of the invoice and printing
-- Recommender module based on Machine Learning algorithms
-- Security configurations
+The purpose is to build aa basic system for registering transactions and generating an invoice for them, printable in PDF and physical printers as well.
+We can register different payment types, products and sub-categories (using Adjacency-Lists on a SQL database which was not included here for security reasons), creating transactions and view the history of made transactions.
+
+The project is still under development and is expected to include:
+- Invoice generation and printing on PDF format and physical printers as well.
+- Recommender module (based on Machine Learning algorithms)
 - Authentication/authorization of modules based on role
+
+In the future, several robustness and security tests are going to be executed, as well as refactoring of the code. In the meantine, the important thing is to have an MPV :).
