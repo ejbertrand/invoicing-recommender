@@ -1,6 +1,6 @@
 # invoicing-recommender
 
-This is a Full-Stack Python developed web application made on Flask. 
+This is a full-stack Python developed web application.
 
 It is built on top of Python (Flask + Jinja), using Javascript as API and HTML/CSS (Bootstrap) code.
 
