@@ -1,0 +1,11 @@
+# Specific files to ignore
+config.py
+services.sql
+invoice.html
+
+# Type of files to ignore
+*.swp
+
+# Directories to ignore
+__pycache__/
+img/
