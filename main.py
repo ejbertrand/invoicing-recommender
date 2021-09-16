@@ -1,4 +1,4 @@
-import website as web
+import webapp as web
 
 app = web.create_app()
 
