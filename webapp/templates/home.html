@@ -3,34 +3,42 @@
 <br/>
 <h2 align="left">What would you like to register?</h2>
 <form method="POST">
-<div class="form-row">
-	<div class="col-md-3">
-		<label for="input_service">Service</label>
-		<select name="input_service" id="input_service" class="form-control" onchange="getSubServices();">
-			<option selected value="0">Choose...</option>
-			{% for service in services %}
-			<option value="{{service.id}}">{{service.service_type}}</option>
-			{% endfor %}
-		</select>
-		<br/>
+	<div class="form-row">
+		
+		<!-- Service dropdown list -->
+		<div class="col-md-3">
+			<label for="input_service">Service</label>
+			<select name="input_service" id="input_service" class="form-control" onchange="getSubServices();">
+				<option selected value="0">Choose...</option>
+				{% for service in services %}
+				<option value="{{service.id}}">{{service.service_type}}</option>
+				{% endfor %}
+			</select>
+			<br/>
+		</div>
+
+		<!-- Subservice dropdown list -->
+		<div class="col-md-3 offset-md-1">
+			<label for="input_subservice">Sub-Service</label>
+			<select name="input_subservice" id="input_subservice" class="form-control">
+				<option selected>Choose...</option>
+			</select>
+			<br/>
+		</div>
+
+		<!-- Payment method dropdown list -->
+		<div class="col-md-3 offset-md-1">
+			<label for="input_payment">Payment Method</label>
+			<select name="input_payment" id="input_payment" class="form-control">
+				<option selected>Choose...</option>
+				{% for payment in payments %}
+				<option>{{payment.payment_type}}</option>
+				{% endfor %}
+			</select><br/>
+		</div>
 	</div>
-	<div class="col-md-3 offset-md-1">
-		<label for="input_subservice">Sub-Service</label>
-		<select name="input_subservice" id="input_subservice" class="form-control">
-			<option selected>Choose...</option>
-		</select>
-		<br/>
-	</div>
-	<div class="col-md-3 offset-md-1">
-		<label for="input_payment">Payment Method</label>
-		<select name="input_payment" id="input_payment" class="form-control">
-			<option selected>Choose...</option>
-			{% for payment in payments %}
-			<option>{{payment.payment_type}}</option>
-			{% endfor %}
-		</select><br/>
-	</div>
-</div>
+
+	<!-- Second group -->
 	<div class="row">
 		<div class="form-group col-md-5">
 			<label for="client_name">Client Name</label>
@@ -39,7 +47,7 @@
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
 					<span class="input-group-text">$</span>
-					<span class="input-group-text">0.00</span>
+					<!-- <span class="input-group-text">0.00</span> -->
 				</div>
 				<input type="text" class="form-control" name="total" id="total" aria-label="Amount (to the nearest dollar)">
 			</div>
@@ -50,9 +58,14 @@
 		</div>
 	</div>
 	<br/>
+
+	<!-- Buttons -->
 	<div align="center">
-		<button type="submit" class="btn btn-warning btn-block">Register Transaction</button>
-		<button type="button" class="btn btn-warning btn-block" onClick="printInvoice()">Generate Invoice</button>
+		<!-- <button type="submit" class="btn btn-warning btn-block">Register Transaction</button> -->
+		<button type="button" class="btn btn-warning btn-block" onClick="addItem()">Add Item</button>
+		<!-- <button type="button" class="btn btn-warning btn-block" onClick="printInvoice()">Generate Invoice</button> -->
+		<button type="submit" class="btn btn-warning btn-block" onClick="printInvoice()">Generate Invoice</button>
 	</div>
+
 </form>
 {% endblock %}

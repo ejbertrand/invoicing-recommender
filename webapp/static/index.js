@@ -1,16 +1,30 @@
+function addItem(){
+	var serviceId = document.getElementById("input_service").value;
+	var subservice = document.getElementById("input_subservice").value;
+	var total = document.getElementById("total").value;
+
+	fetch("/add-item", {
+		method: "POST",
+		body: JSON.stringify({serviceId: serviceId, subservice: subservice, total: total}),
+	})
+	.then(response => response.json())
+    .then(json => console.log("Response: ", json))
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	  });
+}
+
 function printInvoice(){
-  // fetch("/print-invoice",{
-  //   method: "POST",
-  //   body: JSON.stringify({}),
-  // })
-  // .then(response => {
-    // window.location.href = "/print-invoice";
-    window.open("/print-invoice", '_blank');
-  // })
-  // .catch(error => {
-  //   console.log('Error!');
-  //   console.error(error);
-  // });
+	try
+	{
+		window.open("/print-invoice", '_blank');
+	}
+	catch(error)
+	{
+		console.log('Error!');
+		console.error(error);
+	}
 }
 
 function deleteSubservice(subserviceId) {
@@ -48,20 +62,21 @@ function getSubServices()
 }
 
 
-function loadSubServices(content, flag)
+// function loadSubServices(content, flag)
+function loadSubServices(content)
 {
-  let dropdown = document.getElementById('input_subservice');
+  var dropdown = document.getElementById('input_subservice');
   dropdown.length = 1;
 
-  if (flag != 0)
-  {
+//   if (flag != 0)
+//   {
     for(let i = 0; i < content.length; i++){
       option = document.createElement('option');
       option.text = content[i];
       option.value = content[i];
       dropdown.add(option);
     }
-  }
+//   }
 }
 
 function deleteService(serviceId) {

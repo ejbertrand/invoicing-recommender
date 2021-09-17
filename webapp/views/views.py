@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, jsonify, make_response
+from flask import Blueprint, render_template, request, flash, jsonify, make_response, session
 from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
@@ -20,46 +20,65 @@ def check_float(potential_float):
 @views.route('/', methods = ["GET", "POST"])
 @login_required
 def home():
+	session['items'] = []
+	session['balance'] = 0
 	if request.method == "POST":
-		subservice = request.form.get("input_subservice")
-		payment = request.form.get("input_payment")
-		client_name = request.form.get("client_name")
-		total = request.form.get("total")
-		comments = request.form.get("comments")
-		sid = db.session.query(Service.id).filter_by(service_type=subservice).all()
-		pid = db.session.query(Payment.id).filter_by(payment_type=payment).all()
-		alerts = 0
-		if not (sid):
-			flash("The service was not selected", category = "error")
-			alerts += 1
-		if not (pid):
-			flash("A payment method was not selected", category = "error")
-			alerts += 1
-		if len(client_name) < 1:
-			flash("The client name is missing!", category = "error")
-			alerts += 1
-		if len(total) < 1:
-			flash("The total is missing!", category = "error")
-			alerts += 1
-		if not check_float(total):
-			flash("The total is in invalid format!", category = "error")
-			alerts += 1
-		if (alerts == 0):
-			total_fl = float(total)
-			new_register = Transaction(
-				user_id = current_user.id,
-				service_id = db.session.query(Service.parent_id).filter_by(id=sid[0][0]).all()[0][0],
-				subservice_id = sid[0][0],
-				payment_id = pid[0][0],
-				client_name = client_name,
-				total = total_fl,
-				comments = comments)
-			db.session.add(new_register)
-			db.session.commit()
-			flash("Transaction registered!", category = "success")
+		pass
+		# subservice = request.form.get("input_subservice")
+		# payment = request.form.get("input_payment")
+		# client_name = request.form.get("client_name")
+		# total = request.form.get("total")
+		# comments = request.form.get("comments")
+		# sid = db.session.query(Service.id).filter_by(service_type=subservice).all()
+		# pid = db.session.query(Payment.id).filter_by(payment_type=payment).all()
+		# alerts = 0
+		# if not (sid):
+		# 	flash("The service was not selected", category = "error")
+		# 	alerts += 1
+		# if not (pid):
+		# 	flash("A payment method was not selected", category = "error")
+		# 	alerts += 1
+		# if len(client_name) < 1:
+		# 	flash("The client name is missing!", category = "error")
+		# 	alerts += 1
+		# if len(total) < 1:
+		# 	flash("The total is missing!", category = "error")
+		# 	alerts += 1
+		# if not check_float(total):
+		# 	flash("The total is in invalid format!", category = "error")
+		# 	alerts += 1
+		# if (alerts == 0):
+		# 	total_fl = float(total)
+		# 	new_register = Transaction(
+		# 		user_id = current_user.id,
+		# 		service_id = db.session.query(Service.parent_id).filter_by(id=sid[0][0]).all()[0][0],
+		# 		subservice_id = sid[0][0],
+		# 		payment_id = pid[0][0],
+		# 		client_name = client_name,
+		# 		total = total_fl,
+		# 		comments = comments)
+		# 	db.session.add(new_register)
+		# 	db.session.commit()
+		# 	flash("Transaction registered!", category = "success")
 	services = db.session.query(Service).filter_by(parent_id=None).all()
 	payments = db.session.query(Payment).all()
 	return render_template("home.html", user = current_user, services = services, payments = payments)
+
+
+@views.route('/add-item', methods = ["POST"])
+def add_item():
+	item_dic = json.loads(request.data)
+	serviceId = item_dic['serviceId']
+	subservice = item_dic['subservice']
+	total = item_dic['total']
+	session['items'].append((serviceId, subservice, total ))
+	if check_float(total):
+		session['balance'] += float(total)
+	for item in session['items']:
+		print(item)
+	print("The balance due by now is: ", session['balance'])
+	return jsonify("Testing")
+
 
 
 @views.route("/get-subservices", methods = ["POST"])
@@ -197,7 +216,6 @@ def show_transactions():
 
 @views.route('/print-invoice')
 def print_invoice():
-	print("Hey")
 	rendered = render_template("invoice.html", name = "Josue", location = "Aqui")
 	pdf = pdfkit.from_string(rendered, False)
 	response = make_response(pdf)
