@@ -20,8 +20,6 @@ def check_float(potential_float):
 @views.route('/', methods = ["GET", "POST"])
 @login_required
 def home():
-	session['items'] = []
-	session['balance'] = 0
 	if request.method == "POST":
 		pass
 		# subservice = request.form.get("input_subservice")
@@ -64,29 +62,41 @@ def home():
 	payments = db.session.query(Payment).all()
 	return render_template("home.html", user = current_user, services = services, payments = payments)
 
+@views.route('/clean-session', methods = ["POST"])
+@login_required
+def clean_session():
+	session["client_name"] = ""
+	session["payment"] = ""
+	session["comments"] = ""
+	session["items"] = []
+	session["balance"] = 0
+	return jsonify()
+
 
 @views.route('/add-item', methods = ["POST"])
+@login_required
 def add_item():
 	item_dic = json.loads(request.data)
 	serviceId = item_dic['serviceId']
-	subservice = item_dic['subservice']
+	subserviceId = item_dic['subserviceId']
 	total = item_dic['total']
-	session['items'].append((serviceId, subservice, total ))
+	service = db.session.query(Service.service_type).filter_by(id=serviceId).all()[0][0]
+	subservice = db.session.query(Service.service_type).filter_by(id=subserviceId).all()[0][0]
+	
+	session['items'].append((service, subservice, total ))
 	if check_float(total):
 		session['balance'] += float(total)
-	for item in session['items']:
-		print(item)
-	print("The balance due by now is: ", session['balance'])
-	return jsonify("Testing")
-
+	myvar = jsonify({"table": session["items"], "balance": session["balance"]})
+	return myvar
 
 
 @views.route("/get-subservices", methods = ["POST"])
+@login_required
 def get_subservices():
 	service_dic = json.loads(request.data)
 	serviceId = service_dic['serviceId']
-	subservices = db.session.query(Service.service_type).filter_by(parent_id=serviceId).all()
-	subservices_lst = [item[0] for item in subservices]
+	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all();
+	subservices_lst = [[item.id, item.service_type] for item in subservices]
 	return jsonify(subservices_lst)
 
 
@@ -102,6 +112,7 @@ def configure_service():
 
 
 @views.route("/add-service", methods = ["POST"])
+@login_required
 def add_service():
 	service_type = request.form.get("service-type")
 	if (service_type is None) or (len(service_type) < 3):
@@ -117,6 +128,7 @@ def add_service():
 
 
 @views.route("/add-subservice", methods = ["POST"])
+@login_required
 def add_subservice():
 	parent_id = request.form.get("choose_service")
 	subservice = request.form.get("subservice_name")
@@ -140,6 +152,7 @@ def add_subservice():
 
 
 @views.route("/delete-subservice", methods = ["POST"])
+@login_required
 def delete_subservice():
 	subservice_dic = json.loads(request.data)
 	subserviceId = subservice_dic['subserviceId']
@@ -152,6 +165,7 @@ def delete_subservice():
 
 
 @views.route("/delete-service", methods = ["POST"])
+@login_required
 def delete_service():
 	service_dic = json.loads(request.data)
 	serviceId = service_dic['serviceId']
@@ -181,6 +195,7 @@ def configure_payment():
 
 
 @views.route("/delete-payment-method", methods = ["POST"])
+@login_required
 def delete_payment():
 	payment_dic = json.loads(request.data)
 	paymentId = payment_dic['paymentId']
@@ -192,6 +207,7 @@ def delete_payment():
 
 
 @views.route('/transactions')
+@login_required
 def show_transactions():
 	# ParentService = aliased(Service)
 	# transactions = (
@@ -215,6 +231,7 @@ def show_transactions():
 	pass
 
 @views.route('/print-invoice')
+@login_required
 def print_invoice():
 	rendered = render_template("invoice.html", name = "Josue", location = "Aqui")
 	pdf = pdfkit.from_string(rendered, False)
