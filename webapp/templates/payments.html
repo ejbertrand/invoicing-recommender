@@ -18,11 +18,33 @@
 <ul class="list-group list-group-flush" id="notes">
 	{% for payment in payments %}
 	<li class="list-group-item">{{ payment.payment_type }}
-    <button type="button" class="close" onClick="deletePayment({{ payment.id }})">
+		<!-- Payment deletion -->
+    <button type="button" class="close" data-toggle="modal" data-target="#confirm-delete-{{ payment.id }}">
+	<!-- <button type="button" class="close" onClick="deletePayment({{ payment.id }})"> -->
       <span aria-hidden="true">&times;</span>
     </button>
   </li>
 	{% endfor %}
 </ul>
+
+	<!-- Sub-services modals -->
+	{% for payment in payments %}
+	<div class="modal fade" id="confirm-delete-{{ payment.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+					<div class="modal-content">
+							<div class="modal-header">
+								<b>CAUTION!</b>
+	            </div>
+	            <div class="modal-body">
+								Are you sure you want to delete <b>{{ payment.payment_type }}</b> from payment methods?
+							</div>
+							<div class="modal-footer">
+									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<a class="btn btn-danger btn-ok" onClick="deletePayment({{ payment.id }})">Delete</a>
+							</div>
+					</div>
+			</div>
+	</div>
+	{% endfor %}
 
 {% endblock %}

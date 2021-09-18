@@ -61,8 +61,8 @@
 					{{ subsrv_dict[srv_id][subsrv_id] }}
 					<!-- Subservice delete -->
 					<button type="button" class="close" data-href="/delete-serviceX" data-toggle="modal" data-target="#confirm-delete-{{subsrv_id}}">
-			      <span aria-hidden="true">&times;</span>
-			    </button>
+			      		<span aria-hidden="true">&times;</span>
+			    	</button>
 			</div>
 			{% endfor %}
 		</div>
@@ -70,6 +70,7 @@
 	{% endfor %}
 </div>
 
+<!-- Services modals -->
 {% for srv_id in subsrv_dict %}
 	<div class="modal fade" id="confirm-delete-{{srv_id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	    <div class="modal-dialog">
@@ -87,6 +88,8 @@
 	        </div>
 	    </div>
 	</div>
+
+	<!-- Sub-services modals -->
 	{% for subsrv_id in subsrv_dict[srv_id] %}
 	<div class="modal fade" id="confirm-delete-{{subsrv_id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 			<div class="modal-dialog">
