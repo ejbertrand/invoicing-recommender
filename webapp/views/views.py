@@ -6,6 +6,7 @@ from ..models import Service, Payment, Transaction, User
 from .. import db
 import json
 import pdfkit
+import datetime
 
 views = Blueprint("views", __name__)
 
@@ -83,12 +84,24 @@ def add_item():
 	service = db.session.query(Service.service_type).filter_by(id=serviceId).all()[0][0]
 	subservice = db.session.query(Service.service_type).filter_by(id=subserviceId).all()[0][0]
 	
-	session['items'].append((service, subservice, total ))
+	session['items'].append((service, subservice, total))
 	if check_float(total):
 		session['balance'] += float(total)
-	myvar = jsonify({"table": session["items"], "balance": session["balance"]})
-	return myvar
+	json_response = jsonify({"table": session["items"], "balance": session["balance"]})
+	return json_response
 
+
+@views.route('/delete-item', methods = ["POST"])
+@login_required
+def delete_item():
+	item_dic = json.loads(request.data)
+	rowId = item_dic['rowId']
+	total = session['items'][rowId][2]
+	session['items'].pop(rowId)
+	if check_float(total):
+		session['balance'] -= float(total)
+	json_response = jsonify({"table": session["items"], "balance": session["balance"]})
+	return json_response
 
 @views.route("/get-subservices", methods = ["POST"])
 @login_required
@@ -230,10 +243,36 @@ def show_transactions():
 	# return render_template("transactions.html", user = current_user, transactions = transactions)
 	pass
 
+@views.route('/set-transaction-info', methods = ["POST"])
+@login_required
+def set_transaction_info():
+	transaction_dic = json.loads(request.data)
+	session["client_name"] = transaction_dic['client_name']
+	session["payment"] = transaction_dic['payment']
+	session["comments"] = transaction_dic['comments'] # Storing comments that will go to the transaction
+	return jsonify({})
+
 @views.route('/print-invoice')
 @login_required
 def print_invoice():
-	rendered = render_template("invoice.html", name = "Josue", location = "Aqui")
+	# session["client_name"] = "Josefo Smith"
+	# session["payment"] = "Credit Card"
+	invoice_number = 24 # Need to retrieve from DB
+	day = datetime.datetime.now().day
+	year = datetime.datetime.now().year
+	months_dic = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July", \
+		8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+	month = months_dic[datetime.datetime.now().month]
+	date = month + " " + str(day) + ", " + str(year)
+	client_address = "87 Private St. Seattle, WA" # Need to retrieve from DB
+	client_email = "smith@gmail.com" # Need to retrieve from DB
+	client_telno = "990-302-1898" # Need to retrieve from DB
+
+	print(session["client_name"], session["payment"], session["comments"])
+
+	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = session["client_name"], \
+		payment = session["payment"], items = session["items"], balance = session["balance"], date = date, \
+			client_address = client_address, client_email = client_email, client_telno = client_telno) 
 	pdf = pdfkit.from_string(rendered, False)
 	response = make_response(pdf)
 	response.headers['Content-Type'] = 'application/pdf'

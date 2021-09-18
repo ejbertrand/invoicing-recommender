@@ -3,6 +3,7 @@
 	Payment Methods
 {% endblock %}
 {% block content %}
+<!-- Form to add payment method -->
 <form method="POST">
 	<br/>
 	<h3 align="center">Payment Methods</h3>
@@ -10,9 +11,10 @@
 		<label for="payment-type">Type</label>
 		<input type="payment-type" class="form-control" id="payment-type" name="payment-type" placeholder="Enter new payment method">
 	</div>
-	<br/>
 	<button type="submit" class="btn btn-warning">Add Payment Method</button>
-</form>
+</form><br/>
+
+<!-- List of payment methods -->
 <ul class="list-group list-group-flush" id="notes">
 	{% for payment in payments %}
 	<li class="list-group-item">{{ payment.payment_type }}
@@ -22,4 +24,5 @@
   </li>
 	{% endfor %}
 </ul>
+
 {% endblock %}

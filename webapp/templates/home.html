@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <br/>
-<button type="button" class="btn btn-info btn-block" id="new_button" onClick="newTransaction()">New Transaction</button>
+<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="newTransaction()">New Transaction</button>
 <button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()"" hidden="True">Cancel Transaction</button>
 <br/>
 <form method="POST" id="transaction_form" hidden="True">
@@ -65,24 +65,25 @@
 
 	<!-- Buttons -->
 	<div align="center">
-		<button type="button" class="btn btn-info btn-block" onClick="addItem()">Add Item</button>
+		<button type="button" class="btn btn-secondary btn-block" onClick="addItem()">Add Item</button>
 		<br/>
-
-		<table class="table" id="items-table">
-			<thead class="thead-dark">
+		<table class="table" id="items_table">
+			<thead class="thead-light">
 				<th>Item</th>
 				<th>Total</th>
+				<th></th>
 			</thead>
 			<tbody>
 			</tbody>
-			<tfoot class="thead-light">
+			<tfoot>
 				<th>Balance Due</th>
 				<th>$0.00</th>
+				<th></th>
 			</tfoot>
 		</table>
 		<br/>
 
-		<button type="submit" class="btn btn-warning btn-block" onClick="printInvoice()"><b>Finish Transaction &plus; Generate Invoice</b></button>
+		<button type="button" class="btn btn-warning btn-block" onClick="printInvoice()"><b>Finish Transaction &plus; Generate Invoice</b></button>
 		<br/>
 	</div>
 

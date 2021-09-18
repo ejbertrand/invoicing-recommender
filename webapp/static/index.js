@@ -13,13 +13,15 @@ function cleanSession()
 function cleanForm()
 {
 	var form = document.getElementById("transaction_form");
-	var items_table = document.getElementById("items-table")
+	var items_table = document.getElementById("items_table")
 	var row_count = items_table.tBodies[0].rows.length;
+	var balance_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 
 	form.reset();
 	for (let i = 0; i < row_count; i++){
 		items_table.deleteRow(1);
 	}
+	balance_cell.innerHTML = "$0.00";
 }
 
 function newTransaction()
@@ -46,6 +48,20 @@ function cancelTransaction()
 	cleanForm();
 }
 
+function deleteItem(rowId)
+{
+	fetch("/delete-item", {
+		method:	"POST",
+		body: JSON.stringify({rowId: rowId}),
+	})
+	.then(response => response.json())
+	.then(json => printTable(json))
+	.catch(error => {
+		console.log("Error!");
+		console.error(error);
+	});
+}
+
 function addItem(){
 	var serviceId = document.getElementById("input_service").value;
 	var subserviceId = document.getElementById("input_subservice").value;
@@ -56,14 +72,55 @@ function addItem(){
 		body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId, total: total}),
 	})
 	.then(response => response.json())
-    .then(json => console.log(json))
+    .then(json => printTable(json))
 	.catch(error => {
 		console.log('Error!');
 		console.error(error);
 	  });
 }
 
+function printTable(json)
+{
+	var items_tbody = document.getElementById("items_table").getElementsByTagName('tbody')[0];
+	var balance_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
+	var rows = json["table"];
+	var balance = json["balance"];
+	var row_count = items_table.tBodies[0].rows.length;
+	var text1 = '<button type="button" class="close" onClick="deleteItem(';
+	var text2 = ')"><span aria-hidden="true">&times;</span></button>';
+
+	for (let i = 0; i < row_count; i++){
+		items_tbody.deleteRow(0);
+	}
+	for (let i = 0; i < rows.length; i++)
+	{
+		let row = items_tbody.insertRow(i);
+		let item = row.insertCell(0);
+		let total = row.insertCell(1);
+		let del_button = row.insertCell(2);
+		item.innerHTML = rows[i][0] + "  --  " + rows[i][1];
+		total.innerHTML = "$" + rows[i][2];
+		del_button.innerHTML = text1 + i + text2;
+	}
+	balance_cell.innerHTML = "$" + balance;
+}
+
 function printInvoice(){
+	var client_name = document.getElementById("client_name").value;
+	var payment = document.getElementById("input_payment").value;
+	var comments = document.getElementById("comments").value;
+
+	//// HAVE TO VALIDATE HERE IF CLIENT NAME OR THE PAYMENT ARE VALID, BEFORE CONTINUIING WITH THE REST OF THE THING.
+	fetch("/set-transaction-info", {
+		method: "POST",
+		body: JSON.stringify({client_name: client_name, payment: payment, comments: comments}),
+	})
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	});
+	//// HAVE TO VALIDATE THE RESPONSE OF THE SERVER, IF THE CLIENT EXISTS!! BEFORE CONTINUING WITH THE REST.
+	//// Maybe using Flashes
 	try
 	{
 		window.open("/print-invoice", '_blank');
