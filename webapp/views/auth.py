@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, session
 from ..models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 from .. import db, mail
@@ -22,6 +22,7 @@ def login():
 			if check_password_hash(user.password, password):
 				flash("Logged in succesfully!", category = "sucess")
 				login_user(user, remember = True)
+				session["transaction_state"] = "INACTIVE"
 				return redirect(url_for("views.home"))
 			else:
 				flash("Incorrect password, try again.", category = "error")
@@ -32,6 +33,7 @@ def login():
 @auth.route("/logout")
 @login_required
 def logout():
+	session["transaction_state"] = "INACTIVE"
 	logout_user()
 	return redirect(url_for("auth.login"))
 

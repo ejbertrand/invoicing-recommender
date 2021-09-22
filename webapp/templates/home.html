@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <br/>
-<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()">New Transaction</button>
-<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()"" hidden="True">Cancel Transaction</button>
-<br/>
-<form method="POST" id="transaction_form" hidden="True">
+{% if transaction_state == "OPEN" %}
+	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()" hidden>New Transaction</button>
+	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()">Cancel Transaction</button>
+	<br/>
+	<form method="POST" id="transaction_form">
+{% else %}
+	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()">New Transaction</button>
+	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()" hidden>Cancel Transaction</button>
+	<br/>
+	<form method="POST" id="transaction_form" hidden>
+{% endif %}
 	<h4 align="left">General information</h4>
 	<!-- First group -->
 	<div class="row">
@@ -17,9 +24,9 @@
 		<div class="col-md-5">
 			<label for="input_payment">Payment Method</label>
 			<select name="input_payment" id="input_payment" class="form-control">
-				<option selected>Choose...</option>
+				<option selected value="0">Choose...</option>
 				{% for payment in payments %}
-				<option>{{payment.payment_type}}</option>
+				<option value="{{payment.id}}">{{payment.payment_type}}</option>
 				{% endfor %}
 			</select><br/>
 		</div>
@@ -48,7 +55,7 @@
 		<div class="col-md-4 offset-md-1">
 			<label for="input_subservice">Sub-Service</label>
 			<select name="input_subservice" id="input_subservice" class="form-control">
-				<option selected>Choose...</option>
+				<option selected value="0">Choose...</option>
 			</select>
 			<br/>
 		</div>
