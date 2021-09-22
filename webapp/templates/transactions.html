@@ -9,27 +9,26 @@
 <table class="table table-hover">
   <thead class="thead-light text-center">
     <tr>
-			<th scope="col">Date</th>
-			<th scope="col">User</th>
-      <th scope="col">Service</th>
-			<th scope="col">Sub-Service</th>
-      <th scope="col">Payment Method</th>
-      <th scope="col">Client Name</th>
-			<th scope="col">Total</th>
-			<th scope="col">Comments</th>
+		<th scope="col">Invoice</th>
+		<th scope="col">Date</th>
+		<th scope="col">User</th>
+      	<th scope="col">Payment Method</th>
+      	<th scope="col">Client</th>
+		<th scope="col">Balance</th>
+		<th scope="col">Comments</th>
     </tr>
   </thead>
   <tbody class="text-center">
 		{% for transaction in transactions %}
     <tr>
-      <td>{{transaction[0]}}</td>
-			<td>{{transaction[1]}}</td>
-			<td>{{transaction[2]}}</td>
-			<td>{{transaction[3]}}</td>
-			<td>{{transaction[4]}}</td>
-			<td>{{transaction[5]}}</td>
-			<td>{{transaction[6]}}</td>
-			<td>{{transaction[7]}}</td>
+    	<td>#INV{{transaction[0]}}</td>
+		<td>{{transaction[1]}}</td>
+		<td>{{transaction[2]}}</td>
+		<td>{{transaction[3]}}</td>
+		<td>{{transaction[4]}}</td>
+		<td>{{transaction[5]}}</td>
+		<td>{{transaction[6]}}</td>
+		<td>{{transaction[7]}}</td>
     </tr>
 		{% endfor %}
   </tbody>

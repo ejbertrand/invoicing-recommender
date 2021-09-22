@@ -63,6 +63,37 @@ def home():
 	payments = db.session.query(Payment).all()
 	return render_template("home.html", user = current_user, services = services, payments = payments)
 
+@views.route('close-transaction', methods = ['POST'])
+@login_required
+def close_transaction():
+	alert = 0
+	transaction_dic = json.loads(request.data)
+	client_name = transaction_dic["client_name"]
+	payment = transaction_dic['payment']
+	comments = transaction_dic["comments"]
+	payment_id = db.session.query(Payment.id).filter_by(payment_type=payment).all()
+	if len(client_name) < 1:
+		alert = 1
+	elif not (payment_id):
+		alert = 2
+	elif not session['items']:
+		alert = 3
+	elif session['balance'] <= 0:
+		alert = 4
+	if (alert == 0):
+		transaction = Transaction(
+			user_id = current_user.id,
+			payment_id = payment_id[0][0],
+			client_name = client_name,
+			balance = session['balance'],
+			comment = comments)
+		db.session.add(transaction)
+		db.session.commit()
+		## NEED DO ADD THE DETAILS OF THE TRANSACTION, BUT FOR THAT, WE NEED THE ID OF THE INVOICE
+			#service_id = db.session.query(Service.parent_id).filter_by(id=sid[0][0]).all()[0][0],
+			#subservice_id = sid[0][0],
+	return jsonify(alert)
+
 @views.route('/clean-session', methods = ["POST"])
 @login_required
 def clean_session():
@@ -222,28 +253,28 @@ def delete_payment():
 @views.route('/transactions')
 @login_required
 def show_transactions():
-	# ParentService = aliased(Service)
-	# transactions = (
-	# 	db.session.query(
-	# 		Transaction.date,
-	# 		User.user_name,
-	# 		ParentService.service_type,
-	# 		Service.service_type,
-	# 		Payment.payment_type,
-	# 		Transaction.client_id,
-	# 		Transaction.balance,
-	# 		Transaction.comment
-	# 	)
-	# 	.join(User)
-	# 	.join(Service)
-	# 	.join(Service.service_parent.of_type(ParentService))
-	# 	.join(Payment)
-	# 	.all()
-	# )
-	# return render_template("transactions.html", user = current_user, transactions = transactions)
-	pass
+	ParentService = aliased(Service)
+	transactions = (
+		db.session.query(
+			Transaction.id,
+			Transaction.date,
+			User.user_name,
+			#ParentService.service_type, ## To enable
+			#Service.service_type,
+			Payment.payment_type,
+			Transaction.client_name,
+			Transaction.balance,
+			Transaction.comment
+		)
+		.join(User)
+		#.join(Service)
+		#.join(Service.service_parent.of_type(ParentService))
+		.join(Payment)
+		.all()
+	)
+	return render_template("transactions.html", user = current_user, transactions = transactions)
 
-@views.route('/set-transaction-info', methods = ["POST"])
+@views.route('/set-invoice-info', methods = ["POST"])
 @login_required
 def set_transaction_info():
 	transaction_dic = json.loads(request.data)

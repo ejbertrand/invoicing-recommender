@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <br/>
-<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="newTransaction()">New Transaction</button>
+<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()">New Transaction</button>
 <button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()"" hidden="True">Cancel Transaction</button>
 <br/>
 <form method="POST" id="transaction_form" hidden="True">
@@ -83,7 +83,9 @@
 		</table>
 		<br/>
 
-		<button type="button" class="btn btn-warning btn-block" onClick="printInvoice()"><b>Finish Transaction &plus; Generate Invoice</b></button>
+		<button type="button" class="btn btn-secondary btn-block" onClick="printInvoice()"><b>Generate Invoice</b></button>
+		<br/>
+		<button type="button" class="btn btn-warning btn-block" onClick="closeTransaction()"><b>Close Transaction</b></button>
 		<br/>
 	</div>
 
