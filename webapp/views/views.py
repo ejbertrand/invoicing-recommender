@@ -23,14 +23,15 @@ views = Blueprint("views", __name__)
 @views.route('/')
 @login_required
 def home():
+	services = db.session.query(Service).filter_by(parent_id=None).all()
+	payments = db.session.query(Payment).all()
 	if (session["transaction_state"] == "ACTIVE"):
-		services = db.session.query(Service).filter_by(parent_id=None).all()
-		payments = db.session.query(Payment).all()
+		formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
 		return render_template("home.html", user = current_user, services = services, \
-			payments = payments, transaction_state = session["transaction_state"])
+			payments = payments, transaction_state = session["transaction_state"], \
+			client_name = session["client_name"], payment_id = session["payment_id"], \
+			comments = session["comments"], items = session["items"], balance = formatted_balance)
 	else:
-		services = db.session.query(Service).filter_by(parent_id=None).all()
-		payments = db.session.query(Payment).all()
 		return render_template("home.html", user = current_user, services = services, \
 			payments = payments, transaction_state = session["transaction_state"])
 
@@ -135,10 +136,10 @@ def get_subservices():
 def open_transaction():
 	session["transaction_state"] = "OPEN"
 	session["client_name"] = ""
-	session["payment"] = ""
+	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
-	session["balance"] = 0
+	session["balance"] = 0.00
 	return jsonify({})
 
 
@@ -153,16 +154,17 @@ def add_item():
 	item_dic = json.loads(request.data)
 	serviceId = item_dic["serviceId"]
 	subserviceId = item_dic["subserviceId"]
-	total = item_dic["total"]
+	total = float(item_dic["total"])
 	session["client_name"] = item_dic["client_name"]
-	session["payment"] = item_dic["payment"]
+	session["payment_id"] = int(item_dic["payment_id"])
 	session["comments"] = item_dic["comments"]
 	service = db.session.query(Service.service_type).filter_by(id=serviceId).all()[0][0]
 	subservice = db.session.query(Service.service_type).filter_by(id=subserviceId).all()[0][0]
-	session['items'].append((service, subservice, total))
-	if check_float(total):
-		session['balance'] += float(total)
-	json_response = jsonify({"table": session["items"], "balance": session["balance"]})
+	session['items'].append((service, subservice, "{:,.2f}".format((total))))
+	session['balance'] += float(total)
+	session["transaction_state"] = "ACTIVE"
+	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
+	json_response = jsonify({"table": session["items"], "balance": formatted_balance})
 	return json_response
 
 
@@ -178,9 +180,9 @@ def delete_item():
 	rowId = item_dic['rowId']
 	total = session['items'][rowId][2]
 	session['items'].pop(rowId)
-	if check_float(total):
-		session['balance'] -= float(total)
-	json_response = jsonify({"table": session["items"], "balance": session["balance"]})
+	session['balance'] -= float(total.replace(',', ''))
+	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
+	json_response = jsonify({"table": session["items"], "balance": formatted_balance})
 	return json_response
 
 
@@ -194,10 +196,10 @@ def delete_item():
 def clean_session():
 	session["transaction_state"] = "INACTIVE"
 	session["client_name"] = ""
-	session["payment"] = ""
+	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
-	session["balance"] = 0
+	session["balance"] = 0.00
 	return jsonify()
 
 
@@ -217,8 +219,7 @@ def set_invoice_info():
 	else:
 		transaction_dic = json.loads(request.data)
 		session["client_name"] = transaction_dic['client_name']
-		payment = db.session.query(Payment.payment_type).filter_by(id = transaction_dic['payment']).all()
-		session["payment"] = payment[0][0]
+		session["payment_id"] = int(transaction_dic['payment_id'])
 		session["comments"] = transaction_dic['comments']
 	return jsonify({"flag": flag})
 
@@ -238,11 +239,13 @@ def print_invoice():
 		8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
 	month = months_dic[datetime.datetime.now().month]
 	date = month + " " + str(day) + ", " + str(year)
+	payment = db.session.query(Payment.payment_type).filter_by(id = session['payment_id']).all()
+	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
 	client_address = "87 Private St. Seattle, WA" # Need to retrieve from DB
 	client_email = "smith@gmail.com" # Need to retrieve from DB
 	client_telno = "990-302-1898" # Need to retrieve from DB
 	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = session["client_name"], \
-		payment = session["payment"], items = session["items"], balance = session["balance"], date = date, \
+		payment = payment[0][0], items = session["items"], balance = formatted_balance, date = date, \
 			client_address = client_address, client_email = client_email, client_telno = client_telno) 
 	pdf = pdfkit.from_string(rendered, False)
 	response = make_response(pdf)
@@ -267,12 +270,12 @@ def close_transaction():
 	else:
 		transaction_dic = json.loads(request.data)
 		client_name = transaction_dic["client_name"]
-		payment = transaction_dic['payment']
+		payment_id = transaction_dic['payment_id']
 		comments = transaction_dic["comments"]
 		#payment_id = db.session.query(Payment.id).filter_by(payment_type=payment).all()
 		transaction = Transaction(
 			user_id = current_user.id,
-			payment_id = payment,
+			payment_id = payment_id,
 			client_name = client_name,
 			balance = session['balance'],
 			comment = comments)
@@ -388,8 +391,8 @@ def delete_subservice():
 @login_required
 def delete_payment():
 	payment_dic = json.loads(request.data)
-	paymentId = payment_dic['paymentId']
-	payment = Payment.query.get(paymentId)
+	payment_id = payment_dic['payment_id']
+	payment = Payment.query.get(payment_id)
 	if payment:
 		db.session.delete(payment)
 		db.session.commit()

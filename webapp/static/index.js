@@ -9,11 +9,17 @@
 function cleanForm()
 {
 	var form = document.getElementById("transaction_form");
-	var items_table = document.getElementById("items_table")
+	var client_name = document.getElementById("client_name");
+	var payment_id = document.getElementById("input_payment");
+	var comments = document.getElementById("comments");
+	var items_table = document.getElementById("items_table");
 	var row_count = items_table.tBodies[0].rows.length;
 	var balance_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 
 	form.reset();
+	client_name.value = "";
+	payment_id.value = 0;
+	comments.value = "";
 	for (let i = 0; i < row_count; i++){
 		items_table.deleteRow(1);
 	}
@@ -166,21 +172,33 @@ function addItem(){
 	var subserviceId = document.getElementById("input_subservice").value;
 	var total = document.getElementById("total").value;
 	var client_name = document.getElementById("client_name").value;
-	var payment = document.getElementById("input_payment").value;
+	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
-	fetch("/add-item", {
-		method: "POST",
-		body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId,
-			total: total, client_name: client_name, payment: payment,
-			comments: comments}),
-	})
-	.then(response => response.json())
-    .then(json => printTable(json))
-	.catch(error => {
-		console.log('Error!');
-		console.error(error);
-	  });
+	if (serviceId == '0' || subserviceId == '0')
+		alert("Oops! Please, choose a valid service and subservice combination.");
+	else if (total == "" || isNaN(total))
+		alert("Oops! Please, insert a numerical value.");
+	else
+	{
+		fetch("/add-item", {
+			method: "POST",
+			body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId,
+				total: total, client_name: client_name, payment_id: payment_id,
+				comments: comments}),
+		})
+		.then(response => response.json())
+		.then(json => printTable(json))
+		.then(() => {
+			serviceId.value = '0';
+			subserviceId.value = '0';
+			total.value = '';
+		})
+		.catch(error => {
+			console.log('Error!');
+			console.error(error);
+		  });
+	}
 }
 
 /*******************************************************************/
@@ -189,18 +207,18 @@ function addItem(){
 /*******************************************************************/
 function printInvoice(){
 	var client_name = document.getElementById("client_name").value;
-	var payment = document.getElementById("input_payment").value;
+	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
 	if (client_name == "")
 		alert("The client name is empty!");
-	else if (payment == "0")
+	else if (payment_id == "0")
 		alert("No payment method was selected!");
 	else
 	{
 		fetch("/set-invoice-info", {
 			method: "POST",
-			body: JSON.stringify({client_name: client_name, payment: payment, 
+			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
 				comments: comments}),
 		})
 		.then(response => response.json())
@@ -227,18 +245,18 @@ function printInvoice(){
 /***********************************************************************************/
 function closeTransaction(){
 	var client_name = document.getElementById("client_name").value;
-	var payment = document.getElementById("input_payment").value;
+	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
 	if (client_name == "")
 		alert("The client name is empty!");
-	else if (payment == "0")
+	else if (payment_id == "0")
 		alert("No payment method was selected!");
 	else
 	{
 		fetch("close-transaction", {
 			method:	"POST",
-			body: JSON.stringify({client_name: client_name, payment: payment, 
+			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
 				comments: comments}),
 		})
 		.then(response => response.json())
@@ -331,10 +349,10 @@ function deleteService(serviceId) {
   /* Function Name: deletePayment
   /* Purpose: 		Deletes a payment from the payment list
   /***********************************************************************************/
-  function deletePayment(paymentId) {
+  function deletePayment(payment_id) {
 	fetch("/delete-payment-method", {
 	  method: "POST",
-	  body: JSON.stringify({ paymentId: paymentId }),
+	  body: JSON.stringify({ payment_id: payment_id }),
 	})
 	.then(response => {
 	  window.location.href = "/payment-config";

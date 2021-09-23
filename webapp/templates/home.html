@@ -1,100 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
 <br/>
-{% if transaction_state == "OPEN" %}
-	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()" hidden>New Transaction</button>
-	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()">Cancel Transaction</button>
-	<br/>
-	<form method="POST" id="transaction_form">
-{% else %}
+{% if transaction_state == "INACTIVE" %}
 	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()">New Transaction</button>
 	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()" hidden>Cancel Transaction</button>
 	<br/>
 	<form method="POST" id="transaction_form" hidden>
+
+{% else %}
+	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()" hidden>New Transaction</button>
+	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()">Cancel Transaction</button>
+	<br/>
+	<form method="POST" id="transaction_form">
 {% endif %}
-	<h4 align="left">General information</h4>
-	<!-- First group -->
-	<div class="row">
-		<div class="form-group col-md-7">
-			<label for="client_name">Client Name</label>
-			<input name="client_name" id="client_name" class="form-control"></input>
-		</div>
-
-		<!-- Payment method dropdown list -->
-		<div class="col-md-5">
-			<label for="input_payment">Payment Method</label>
-			<select name="input_payment" id="input_payment" class="form-control">
-				<option selected value="0">Choose...</option>
-				{% for payment in payments %}
-				<option value="{{payment.id}}">{{payment.payment_type}}</option>
-				{% endfor %}
-			</select><br/>
-		</div>
-	</div>
-
-	<!-- Comments -->
-	<label for="comments">Comments (Optional)</label>
-	<textarea name="comments" id="comments" class="form-control" placeholder="Write any comments you may have."></textarea><br/>
-
-	<h4 align="left">What would you like to register?</h4>
-
-	<div class="form-row">
-		<!-- Service dropdown list -->
-		<div class="col-md-4">
-			<label for="input_service">Service</label>
-			<select name="input_service" id="input_service" class="form-control" onchange="getSubServices();">
-				<option selected value="0">Choose...</option>
-				{% for service in services %}
-				<option value="{{service.id}}">{{service.service_type}}</option>
-				{% endfor %}
-			</select>
-			<br/>
-		</div>
-
-		<!-- Subservice dropdown list -->
-		<div class="col-md-4 offset-md-1">
-			<label for="input_subservice">Sub-Service</label>
-			<select name="input_subservice" id="input_subservice" class="form-control">
-				<option selected value="0">Choose...</option>
-			</select>
-			<br/>
-		</div>
-
-		<div class="col-md-2 offset-md-1">
-			<label for="total">Total</label>
-			<div class="input-group mb-3">
-				<span class="input-group-text">$</span>
-				<input type="text" class="form-control" name="total" id="total" aria-label="Amount (to the nearest dollar)">
+		<h4 align="left">General information</h4>
+		<!-- First group -->
+		<div class="row">
+			<div class="form-group col-md-7">
+				<label for="client_name">Client Name</label>
+				{% if transaction_state == "ACTIVE" %}
+					<input name="client_name" id="client_name" class="form-control" value="{{client_name}}"></input>
+				{% else %}
+					<input name="client_name" id="client_name" class="form-control"></input>
+				{% endif %}
+			</div>
+			<!-- Payment method dropdown list -->
+			<div class="col-md-5">
+				<label for="input_payment">Payment Method</label>
+				<select name="input_payment" id="input_payment" class="form-control">
+					{% if transaction_state == "ACTIVE" %}
+						{% if payment_id == 0 %}
+							<option selected value="0">Choose...</option>
+							{% for payment in payments %}
+								<option value="{{payment.id}}">{{payment.payment_type}}</option>
+							{% endfor %}
+						{% else %}
+							<option value="0">Choose...</option>
+							{% for payment in payments %}
+								{% if payment_id == payment.id %}
+									<option selected value="{{payment.id}}">{{payment.payment_type}}</option>
+								{% else %}
+									<option value="{{payment.id}}">{{payment.payment_type}}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					{% else %}
+						<option selected value="0">Choose...</option>
+						{% for payment in payments %}
+						<option value="{{payment.id}}">{{payment.payment_type}}</option>
+						{% endfor %}
+					{% endif %}
+				</select><br/>
 			</div>
 		</div>
-
-	</div>
-
-	<!-- Buttons -->
-	<div align="center">
-		<button type="button" class="btn btn-secondary btn-block" onClick="addItem()">Add Item</button>
-		<br/>
-		<table class="table" id="items_table">
-			<thead class="thead-light">
-				<th>Item</th>
-				<th>Total</th>
-				<th></th>
-			</thead>
-			<tbody>
-			</tbody>
-			<tfoot>
-				<th>Balance Due</th>
-				<th>$0.00</th>
-				<th></th>
-			</tfoot>
-		</table>
-		<br/>
-
-		<button type="button" class="btn btn-secondary btn-block" onClick="printInvoice()"><b>Generate Invoice</b></button>
-		<br/>
-		<button type="button" class="btn btn-warning btn-block" onClick="closeTransaction()"><b>Close Transaction</b></button>
-		<br/>
-	</div>
-
-</form>
+		<!-- Comments -->
+		<label for="comments">Comments (Optional)</label>
+		{% if transaction_state == "ACTIVE" %}
+			<textarea name="comments" id="comments" class="form-control" placeholder="Write any comments you may have.">{{comments}}</textarea><br/>
+		{% else %}
+			<textarea name="comments" id="comments" class="form-control" placeholder="Write any comments you may have."></textarea><br/>
+		{% endif %}
+		<h4 align="left">What would you like to register?</h4>
+		<div class="form-row">
+			<!-- Service dropdown list -->
+			<div class="col-md-4">
+				<label for="input_service">Service</label>
+				<select name="input_service" id="input_service" class="form-control" onchange="getSubServices();">
+					<option selected value="0">Choose...</option>
+					{% for service in services %}
+					<option value="{{service.id}}">{{service.service_type}}</option>
+					{% endfor %}
+				</select>
+				<br/>
+			</div>
+			<!-- Subservice dropdown list -->
+			<div class="col-md-4 offset-md-1">
+				<label for="input_subservice">Sub-Service</label>
+				<select name="input_subservice" id="input_subservice" class="form-control">
+					<option selected value="0">Choose...</option>
+				</select>
+				<br/>
+			</div>
+			<div class="col-md-2 offset-md-1">
+				<label for="total">Total</label>
+				<div class="input-group mb-3">
+					<span class="input-group-text">$</span>
+					<input type="text" class="form-control" name="total" id="total" aria-label="Amount (to the nearest dollar)">
+				</div>
+			</div>
+		</div>
+		<!-- Buttons -->
+		<div align="center">
+			<button type="button" class="btn btn-secondary btn-block" onClick="addItem()">Add Item</button>
+			<br/>
+			<table class="table" id="items_table" style="width: 100%">
+				<colgroup>
+					<col style="width: 70%;">
+					<col style="width: 25%;">
+					<col style="width: 5%;">
+				</colgroup>
+				<thead class="thead-light">
+					<th>Item</th>
+					<th>Total</th>
+					<th></th>
+				</thead>
+				<tbody>
+					{% if transaction_state == "ACTIVE" %}
+						{% for item in items %}
+						<tr>
+							<td>{{item[0]}}  --  {{item[1]}}</td>
+							<td >${{item[2]}}</td>
+							<td><button type="button" class="close" onClick="deleteItem({{loop.index0}})"><span aria-hidden="true">&times;</span></button></td>
+						</tr>
+						{% endfor %}
+					{% endif %}
+				</tbody>
+				<tfoot>
+					<th>Balance Due</th>
+					{% if transaction_state == "ACTIVE" %}
+						<th>${{balance}}</th>
+					{% else %}
+						<th>$0.00</th>
+					{% endif %}
+					<th></th>
+				</tfoot>
+			</table>
+			<br/>
+			<button type="button" class="btn btn-secondary btn-block" onClick="printInvoice()"><b>Generate Invoice</b></button>
+			<br/>
+			<button type="button" class="btn btn-warning btn-block" onClick="closeTransaction()"><b>Close Transaction</b></button>
+			<br/>
+		</div>
+	</form>
 {% endblock %}
