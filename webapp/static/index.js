@@ -188,11 +188,14 @@ function addItem(){
 				comments: comments}),
 		})
 		.then(response => response.json())
-		.then(json => printTable(json))
-		.then(() => {
-			serviceId.value = '0';
-			subserviceId.value = '0';
+		.then(json => {
+			printTable(json);
+			let total = document.getElementById("total");
+			let servicebox = document.getElementById("input_service");
+
 			total.value = '';
+			servicebox.selectedIndex = 0;
+			loadSubservices("");
 		})
 		.catch(error => {
 			console.log('Error!');

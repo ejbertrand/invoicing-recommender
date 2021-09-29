@@ -6,7 +6,8 @@ from ..models import Service, Payment, Transaction, User
 from .. import db
 import json
 import pdfkit
-import datetime
+from datetime import datetime
+import pytz
 
 views = Blueprint("views", __name__)
 
@@ -232,20 +233,28 @@ def set_invoice_info():
 @views.route('/print-invoice')
 @login_required
 def print_invoice():
-	invoice_number = 24 # Need to retrieve from DB
-	day = datetime.datetime.now().day
-	year = datetime.datetime.now().year
+	now = datetime.now(pytz.timezone("America/Chicago"))
+	day = now.day
+	year = now.year
 	months_dic = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July", \
 		8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
-	month = months_dic[datetime.datetime.now().month]
+	month = months_dic[now.month]
+	hour = 12 if (now.hour % 12 == 0) else (now.hour % 12)
+	period = "AM" if now.hour < 12 else "PM"
+	minute = now.minute
 	date = month + " " + str(day) + ", " + str(year)
+	time = str(hour) + ":" + str(minute) + " " + period
+
 	payment = db.session.query(Payment.payment_type).filter_by(id = session['payment_id']).all()
 	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
+
+	invoice_number = 24 # Need to retrieve from DB
 	client_address = "87 Private St. Seattle, WA" # Need to retrieve from DB
 	client_email = "smith@gmail.com" # Need to retrieve from DB
 	client_telno = "990-302-1898" # Need to retrieve from DB
+
 	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = session["client_name"], \
-		payment = payment[0][0], items = session["items"], balance = formatted_balance, date = date, \
+		payment = payment[0][0], items = session["items"], balance = formatted_balance, date = date, time = time, \
 			client_address = client_address, client_email = client_email, client_telno = client_telno) 
 	pdf = pdfkit.from_string(rendered, False)
 	response = make_response(pdf)
