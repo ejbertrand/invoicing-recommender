@@ -14,7 +14,7 @@ function cleanForm()
 	var comments = document.getElementById("comments");
 	var items_table = document.getElementById("items_table");
 	var row_count = items_table.tBodies[0].rows.length;
-	var balance_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
+	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 
 	form.reset();
 	client_name.value = "";
@@ -23,7 +23,7 @@ function cleanForm()
 	for (let i = 0; i < row_count; i++){
 		items_table.deleteRow(1);
 	}
-	balance_cell.innerHTML = "$0.00";
+	account_cell.innerHTML = "$0.00";
 }
 
 /*******************************************************************/
@@ -33,9 +33,9 @@ function cleanForm()
 function printTable(json)
 {
 	var items_tbody = document.getElementById("items_table").getElementsByTagName('tbody')[0];
-	var balance_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
+	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 	var rows = json["table"];
-	var balance = json["balance"];
+	var account = json["account"];
 	var row_count = items_table.tBodies[0].rows.length;
 	var text1 = '<button type="button" class="close" onClick="deleteItem(';
 	var text2 = ')"><span aria-hidden="true">&times;</span></button>';
@@ -53,7 +53,7 @@ function printTable(json)
 		total.innerHTML = "$" + rows[i][2];
 		del_button.innerHTML = text1 + i + text2;
 	}
-	balance_cell.innerHTML = "$" + balance;
+	account_cell.innerHTML = "$" + account;
 }
 
 
@@ -176,9 +176,9 @@ function addItem(){
 	var comments = document.getElementById("comments").value;
 
 	if (serviceId == '0' || subserviceId == '0')
-		alert("Oops! Please, choose a valid service and subservice combination.");
+		alert("Oops!\nPlease, choose a valid Service and Subservice combination.");
 	else if (total == "" || isNaN(total))
-		alert("Oops! Please, insert a numerical value.");
+		alert("Please, insert a numerical value for the Total.");
 	else
 	{
 		fetch("/add-item", {
@@ -212,6 +212,7 @@ function printInvoice(){
 	var client_name = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
+	var payment_amount = document.getElementById("payment_amount").value;
 
 	if (client_name == "")
 		alert("The client name is empty!");
@@ -222,14 +223,16 @@ function printInvoice(){
 		fetch("/set-invoice-info", {
 			method: "POST",
 			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
-				comments: comments}),
+				comments: comments, payment_amount : payment_amount}),
 		})
 		.then(response => response.json())
 		.then(json => {
 			if (json["flag"] == 1)
-				alert("Oops, there are not items to register!");
+				alert("Oops!\nThere are no items to register!");
 			else if (json["flag"] == 2)
-				alert("Oops, the balance is $0.00!");
+				alert("Oops!\nThe account is $0.00!");
+			else if (json["flag"] == 3)
+				alert("Please, insert a numerical value for payment.");
 			else
 			{
 				window.open("/print-invoice", '_blank');
@@ -259,22 +262,19 @@ function closeTransaction(){
 	{
 		fetch("close-transaction", {
 			method:	"POST",
-			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
-				comments: comments}),
+			body: JSON.stringify({}),
 		})
 		.then(response => response.json())
 		.then(json => {
-			if (json["flag"] == 1)
-				alert("Oops, there are not items to register!");
-			else if (json["flag"] == 2)
-				alert("Oops, the balance is $0.00!");
+			if (json["flag"] == 3)
+				alert("The invoice has to be generated first!");
 			else
 			{
 				let form = document.getElementById("transaction_form");
 				let new_btn = document.getElementById("new_button");
 				let cancel_btn = document.getElementById("cancel_button");
 		
-				alert("Transaction finished succesfully!");
+				alert("Transaction saved!");
 				form.hidden = true;
 				cancel_btn.hidden = true;
 				new_btn.hidden = false;

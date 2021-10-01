@@ -50,7 +50,9 @@ class Transaction (db.Model):
 	#### REMEMBER TO REMOVE THIS LINE WHEN LINKING TRANSACTION TO CLIENTS' TABLE:
 	client_name = db.Column(db.String(150), nullable = False)
 	#################################################################
-	balance = db.Column(db.Float)
+	account = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
+	payment = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
+	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	comment = db.Column(db.String(600))
 	transaction_details = db.relationship('Transaction_Details')
 
@@ -59,5 +61,4 @@ class Transaction_Details (db.Model):
 	transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
 	service_id = db.Column(db.Integer)
 	subservice_id = db.Column(db.Integer, db.ForeignKey('service.id'))
-	quantity = db.Column(db.Integer)
-	total = db.Column(db.Float)
+	total = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))

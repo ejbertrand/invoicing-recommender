@@ -75,7 +75,7 @@
 			</div>
 			<!-- Subservice dropdown list -->
 			<div class="col-md-4 offset-md-1">
-				<label for="input_subservice">Sub-Service</label>
+				<label for="input_subservice">Subservice</label>
 				<select name="input_subservice" id="input_subservice" class="form-control">
 					<option selected value="0">Choose...</option>
 				</select>
@@ -85,7 +85,7 @@
 				<label for="total">Total</label>
 				<div class="input-group mb-3">
 					<span class="input-group-text">$</span>
-					<input type="text" class="form-control" name="total" id="total" aria-label="Amount (to the nearest dollar)">
+					<input type="text" class="form-control" name="total" id="total" aria-label="Amount (to the nearest dollar)"></input>
 				</div>
 			</div>
 		</div>
@@ -115,14 +115,21 @@
 						{% endfor %}
 					{% endif %}
 				</tbody>
-				<tfoot>
-					<th>Balance Due</th>
+				<tfoot class="thead-light">
+					<th>Account</th>
 					{% if transaction_state == "ACTIVE" %}
-						<th>${{balance}}</th>
+						<th>${{account}}</th>
 					{% else %}
 						<th>$0.00</th>
 					{% endif %}
 					<th></th>
+					<tr>
+						<th style="text-align: right;">Payment</th>
+						<th>
+							<input type="text" class="form-control" name="payment_amount" id="payment_amount"></input>
+						</th>
+						<th></th>
+					</tr>
 				</tfoot>
 			</table>
 			<br/>

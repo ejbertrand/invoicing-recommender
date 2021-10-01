@@ -14,7 +14,7 @@
 		<th scope="col">User</th>
       	<th scope="col">Payment Method</th>
       	<th scope="col">Client</th>
-		<th scope="col">Balance</th>
+		<th scope="col">Account</th>
 		<th scope="col">Comments</th>
     </tr>
   </thead>
@@ -26,9 +26,8 @@
 		<td>{{transaction[2]}}</td>		<!-- User -->
 		<td>{{transaction[3]}}</td>		<!-- Payment -->
 		<td>{{transaction[4]}}</td>		<!-- Client -->
-		<td>{{transaction[5]}}</td>		<!-- Payment -->
-		<td>{{transaction[6]}}</td>		<!-- Balance -->
-		<td>{{transaction[7]}}</td>		<!-- Comments -->
+		<td>${{transaction[5]}}</td>		<!-- Account -->
+		<td>{{transaction[6]}}</td>		<!-- Comments -->
     </tr>
 		{% endfor %}
   </tbody>
