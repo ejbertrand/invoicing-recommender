@@ -6,7 +6,7 @@ It is built on top of Python (Flask + Jinja), using Javascript as API and HTML/C
 
 The purpose of this project is to build an invoicing system, capable of registering transactions using different products/sub-products and payment types. Additionally, the invoice should be printable on PDF format as well as being able to send it directly to a printer. Finally, using the history and client behavior, the plan is for the system itself to recommend products based on previous client behavior as well as demographic data.
 
-**---- RELEASE v1.0 ----**
+**---- VERSION 1.0 ----**
 
 **Home page:**
 1. Restructure the form structure, buttons, and details table.
