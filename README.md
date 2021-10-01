@@ -1,4 +1,4 @@
-# invoicing-recommender
+# ATC webapp
 
 This is a full-stack Python developed web application.
 
