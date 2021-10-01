@@ -6,17 +6,43 @@ It is built on top of Python (Flask + Jinja), using Javascript as API and HTML/C
 
 The purpose of this project is to build an invoicing system, capable of registering transactions using different products/sub-products and payment types. Additionally, the invoice should be printable on PDF format as well as being able to send it directly to a printer. Finally, using the history and client behavior, the plan is for the system itself to recommend products based on previous client behavior as well as demographic data.
 
-**Current State:**
+Several changes were made against the prototype to build this version 1.0
 
-It can register different payment types, product categories and sub-categories, registration of transactions and view the history of transactions.
-The product category/subcategory hierarchy was done using Adjacency-Lists on a SQL database and Stored Procedures (not included here).
+**VERSION 1.0 RELEASED:**
 
-**The project is still under development and is expected to include:**
+**Home page**
+1. Restructure the form structure, buttons, and details table.
+2. New Transaction: Create new session variables and show form
+3. Cancel Transaction: Clean session variables and clean form.
+4. Add Item: Update session and table
+5. Delete Item: Update session and table
+6. Close Transaction: Clean form and session, register the transaction into the DB.
+7. Generate Invoice: Validate the information that was input, before generating the invoice (it's format)
+8. Session: Maintain session data when the transaction is Active
+9. Clean information on service/sub-service dropdowns once an item has been added to the details table.
 
-- Invoice generation and printing on PDF format and physical printers as well.
-- Recommender module (based on Machine Learning algorithms)
-- Authentication/authorization of modules based on role
+**Services**:
+1. Adequate home page to show services / sub-services in a dynamic form
+2. Adequate the transactions page to show the services / sub-services of each transaction
+3. Adequate the Services Configuration page to register new service/sub-services combination
+4. Modal to confirm the deletion of a service/sub-service.
 
-**In the future:**
+**Invoicing**:
+1. Generate an invoice with all the details (the template is not uploaded for copyright reasons).
+2. Show hour in the invoice, according to the timezone, and saving the same hour of the generation of the invoice into the database when the transaction is closed.
 
-Several robustness and security tests are going to be executed, as well as refactoring of the code. In the meantine, the important thing is to have an MPV :).
+**Payments**:
+Modal for deleting payment form
+
+**Transaction History**:
+Register the username that did the transaction
+
+**Login**:
+When logged in, if the login page is called, redirect to the home page.
+
+**Database**
+Change the database columns that store monetary information. Setting them to Numerical datatype (Decimal) and using two numbers after the decimal point.
+
+**Best practices**
+1. Using config file to import into Flask
+2. Several bugs were solved.
