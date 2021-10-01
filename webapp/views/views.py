@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, jsonify, make_resp
 from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
-from ..models import Service, Payment, Transaction, User
+from ..models import Service, Payment, Transaction, User, Identification
 from .. import db
 import json
 import pdfkit
@@ -81,6 +81,28 @@ def configure_payment():
 			flash("Payment method added!", category = "success")
 	all_payments = db.session.query(Payment).all()
 	return render_template("payments.html", user = current_user, payments = all_payments)
+
+
+###################################################################
+# Function:		configure_identification
+# Purpose:		Loads the Payment Config page, and adds a new 
+#				payment if called with POST
+# Return vals: 	Rendered HTML of the Payment Config page
+###################################################################
+@views.route("/identification-config", methods = ['GET', 'POST'])
+@login_required
+def configure_identification():
+	if request.method == 'POST':
+		id_type = request.form.get("identification-type")
+		if len(id_type) < 3:
+			flash("The identification form is too short!", category = "error")
+		else:
+			new_identification = Identification(id_type = id_type, id_active = 1)
+			db.session.add(new_identification)
+			db.session.commit()
+			flash("Identification form added!", category = "success")
+	all_identifications = db.session.query(Identification).all()
+	return render_template("identifications.html", user = current_user, identifications = all_identifications)
 
 
 ###################################################################
@@ -435,6 +457,22 @@ def delete_payment():
 		db.session.commit()
 	return jsonify({})
 
+
+###################################################################
+# Function:		delete_identification
+# Purpose:		Delete an identification type
+# Return vals: 	Empty JSON
+###################################################################
+@views.route("/delete-identification", methods = ["POST"])
+@login_required
+def delete_identification():
+	identification_dic = json.loads(request.data)
+	identification_id = identification_dic['identification_id']
+	identification = Identification.query.get(identification_id)
+	if identification:
+		db.session.delete(identification)
+		db.session.commit()
+	return jsonify({})
 
 
 

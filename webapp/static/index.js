@@ -100,6 +100,7 @@ function loadSubservices(content)
 
 
 
+
 /*******************************************************************/
 /************************** SESSION ********************************/
 /*******************************************************************/
@@ -359,6 +360,25 @@ function deleteService(serviceId) {
 	})
 	.then(response => {
 	  window.location.href = "/payment-config";
+	})
+	.catch(error => {
+	  console.log('Error!');
+	  console.error(error);
+	});
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: deleteIdentification
+  /* Purpose: 		Deletes an ID type from the list
+  /***********************************************************************************/
+  function deleteIdentification(identification_id) {
+	fetch("/delete-identification", {
+	  method: "POST",
+	  body: JSON.stringify({ identification_id: identification_id }),
+	})
+	.then(response => {
+	  window.location.href = "/identification-config";
 	})
 	.catch(error => {
 	  console.log('Error!');
