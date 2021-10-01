@@ -31,7 +31,7 @@ class Client (db.Model):
 	client_email = db.Column(db.String(100))
 	id_id = db.Column(db.Integer, db.ForeignKey('identification.id'))
 	id_number = db.Column(db.String(50))
-	client_transactions = db.relationship('Transaction')
+	#client_transactions = db.relationship('Transaction')
 
 class Service (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
@@ -46,8 +46,13 @@ class Transaction (db.Model):
 	date = db.Column(db.DateTime(timezone = True), default = func.now())
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	payment_id = db.Column(db.Integer, db.ForeignKey('payment.id'))
-	client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
-	balance = db.Column(db.Float)
+	#client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
+	#### REMEMBER TO REMOVE THIS LINE WHEN LINKING TRANSACTION TO CLIENTS' TABLE:
+	client_name = db.Column(db.String(150), nullable = False)
+	#################################################################
+	account = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
+	payment = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
+	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	comment = db.Column(db.String(600))
 	transaction_details = db.relationship('Transaction_Details')
 
@@ -56,5 +61,4 @@ class Transaction_Details (db.Model):
 	transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
 	service_id = db.Column(db.Integer)
 	subservice_id = db.Column(db.Integer, db.ForeignKey('service.id'))
-	quantity = db.Column(db.Integer)
-	total = db.Column(db.Float)
+	total = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
