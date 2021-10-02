@@ -48,7 +48,7 @@ def home():
 ###################################################################
 # Function:		configure_service
 # Purpose:		Loads the Service Config page
-# Return vals: 	Rendered HTML of the Service Config page
+# Return vals: 	Rendered HTML of the Services config page
 ###################################################################
 @views.route('/services-config')
 @login_required
@@ -65,7 +65,7 @@ def configure_service():
 # Function:		configure_payment
 # Purpose:		Loads the Payment Config page, and adds a new 
 #				payment if called with POST
-# Return vals: 	Rendered HTML of the Payment Config page
+# Return vals: 	Rendered HTML of the Payments config page
 ###################################################################
 @views.route("/payment-config", methods = ['GET', 'POST'])
 @login_required
@@ -87,7 +87,7 @@ def configure_payment():
 # Function:		configure_identification
 # Purpose:		Loads the Payment Config page, and adds a new 
 #				payment if called with POST
-# Return vals: 	Rendered HTML of the Payment Config page
+# Return vals: 	Rendered HTML of the Identifications config page
 ###################################################################
 @views.route("/identification-config", methods = ['GET', 'POST'])
 @login_required
@@ -137,6 +137,17 @@ def show_transactions():
 
 
 ###################################################################
+# Function:		clients
+# Purpose:		Add, delete, or modify clients' information
+# Return vals: 	Rendered HTML of the Clients page
+###################################################################
+@views.route("/clients", methods = ['GET', 'POST'])
+@login_required
+def clients():
+	return render_template("clients.html", user = current_user)
+
+
+###################################################################
 # Function:		get_subservices
 # Purpose:		Get the subservices associated to a service
 # Return vals: 	JSON containing the subservice list
@@ -149,6 +160,9 @@ def get_subservices():
 	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all();
 	subservices_lst = [[item.id, item.service_type] for item in subservices]
 	return jsonify(subservices_lst)
+
+
+
 
 
 
