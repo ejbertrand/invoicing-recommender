@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}
-	Identification Forms
+	Identification Types
 {% endblock %}
 {% block content %}
 
 <!-- Form to add Identification type -->
 <form method="POST">
 	<br/>
-	<h3 align="center">Identification Forms</h3>
+	<h3 align="center">Identification Types</h3>
 	<div class="form-group">
 		<label for="identification-type">Identification</label>
-		<input type="identification-type" class="form-control" id="identification-type" name="identification-type" placeholder="Enter new identification form">
+		<input type="identification-type" class="form-control" id="identification-type" name="identification-type" placeholder="Enter new identification type">
 	</div>
 	<button type="submit" class="btn btn-warning">Add Identification</button>
 </form><br/>
@@ -36,7 +36,7 @@
 								<b>CAUTION!</b>
 	            </div>
 	            <div class="modal-body">
-								Are you sure you want to delete <b>{{ identification.id_type }}</b> as identification form?
+								Are you sure you want to delete <b>{{ identification.id_type }}</b> as identification type?
 							</div>
 							<div class="modal-footer">
 									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, jsonify, make_resp
 from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
-from ..models import Service, Payment, Transaction, User, Identification
+from ..models import Service, Payment, Transaction, User, Identification, Client
 from .. import db
 import json
 import pdfkit
@@ -113,7 +113,7 @@ def configure_identification():
 @views.route('/transactions')
 @login_required
 def show_transactions():
-	ParentService = aliased(Service)
+	#ParentService = aliased(Service)
 	transactions = (
 		db.session.query(
 			Transaction.id,
@@ -141,10 +141,27 @@ def show_transactions():
 # Purpose:		Add, delete, or modify clients' information
 # Return vals: 	Rendered HTML of the Clients page
 ###################################################################
-@views.route("/clients", methods = ['GET', 'POST'])
+@views.route("/clients")
 @login_required
 def clients():
-	return render_template("clients.html", user = current_user)
+	all_identifications = db.session.query(Identification).all()
+	clients = (
+		db.session.query(
+			Client.client_name,
+			Client.tel_number,
+			Client.alt_number,
+			Client.client_email,
+			Identification.id_type,
+			Client.id_number,
+			Client.address,
+		)
+		.join(Identification)
+		.order_by(Client.client_name.asc())
+		.all()
+	)
+	return render_template("clients.html", user = current_user, identifications = all_identifications, \
+		clients = clients)
+
 
 
 ###################################################################
@@ -160,6 +177,8 @@ def get_subservices():
 	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all();
 	subservices_lst = [[item.id, item.service_type] for item in subservices]
 	return jsonify(subservices_lst)
+
+
 
 
 
@@ -487,6 +506,42 @@ def delete_identification():
 		db.session.delete(identification)
 		db.session.commit()
 	return jsonify({})
+
+
+###################################################################
+# Function:		add_client
+# Purpose:		Adds a client
+# Return vals: 	A call to the configure_service function to render
+#				the Service Config page
+###################################################################
+@views.route("/add-client", methods = ["POST"])
+@login_required
+def add_client():
+	alerts = 0
+	client_name = request.form.get("client_name")
+	client_address = request.form.get("client_address")
+	client_tel = request.form.get("client_tel")
+	client_stel = request.form.get("client_stel")
+	client_email = request.form.get("client_email")
+	id_id = request.form.get("choose_id")
+	client_idno = request.form.get("client_idno")
+
+	if (client_name == "" or len(client_name) < 3):
+		flash("The name is too short!", category = "error")
+		alerts += 1
+	if (client_address == "" or len(client_address) < 5):
+		flash("The address is too short!", category = "error")
+		alerts += 1
+	if (client_tel == "" or len(client_tel) < 10):
+		flash("The telephone number is too short!", category = "error")
+		alerts += 1
+	if (alerts == 0):
+		new_client = Client(client_name = client_name, address = client_address, tel_number = client_tel, \
+			alt_number = client_stel, id_id = id_id, id_number = client_idno, client_email = client_email)
+		db.session.add(new_client)
+		db.session.commit()
+		flash("Client added!", category = "success")
+	return clients()
 
 
 

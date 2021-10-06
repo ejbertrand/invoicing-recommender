@@ -1,3 +1,84 @@
 {% extends "base.html" %}
 {% block content %}
+
+<br/><h3 align="center">Clients</h3>
+
+<!-- Form for adding clients -->
+<div class="container p-3 my-3 border">
+	<form method="POST" action="/add-client">
+
+		<h6>Adding a new client?</h6>
+		<div class="row">
+			<div class="col-md-6">
+				<label for="client_name">Client name *</label>
+				<input class="form-control" id="client_name" name="client_name" placeholder="Enter the complete name "></input><br/>
+			</div>
+			<div class="col-md-6">
+				<label for="client_address">Address *</label>
+				<input class="form-control" id="client_address" name="client_address" placeholder="Street Number, City, and ZIP Code"></input><br/>	
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-3">
+				<label for="client_tel">Telephone *</label>
+				<input class="form-control" id="client_tel" name="client_tel" placeholder="(###) ### - ####"></input><br/>
+			</div>
+			<div class="col-md-3">
+				<label for="client_stel">Secondary phone</label>
+				<input class="form-control" id="client_stel" name="client_stel" placeholder="(###) ### - ####"></input><br/>				
+			</div>
+			<div class="col-md-6">
+				<label for="client_email">E-mail address:</label>
+				<input class="form-control" id="client_email" name="client_email" placeholder="E-mail address"></input><br/>				
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-4 offset-md-2">
+				<label for="choose_id">Identification type</label>
+				<select name="choose_id" id="choose_id" class="form-control">
+					<option selected value="0">Choose...</option>
+					{% for identification in identifications %}
+					<option value="{{ identification.id }}">{{ identification.id_type }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="col-md-4">
+				<label for="client_idno">Identification No.</label>
+				<input class="form-control" id="client_idno" name="client_idno" placeholder="ID Number"></input>
+			</div>
+		</div><br/>
+
+		<button type="submit" class="btn btn-warning">Add Client</button>
+	</form>
+</div><br/>
+
+<table class="table table-hover">
+	<thead class="thead-light text-center">
+	  <tr>
+		  <th scope="col">Name</th>
+		  <th scope="col">Phone</th>
+		  <th scope="col">Secondary Phone</th>
+		  <th scope="col">E-mail</th>
+		  <th scope="col">ID Type</th>
+		  <th scope="col">ID Number</th>
+		  <th scope="col">Address</th>
+	  </tr>
+	</thead>
+	<tbody class="text-center">
+		  {% for client in clients %}
+	  <tr>
+		  <td>{{client[0]}}</td>	<!-- Name -->
+		  <td>{{client[1]}}</td>	<!-- Phone -->
+		  <td>{{client[2]}}</td>	<!-- Secondary Phone -->
+		  <td>{{client[3]}}</td>	<!-- E-mail -->
+		  <td>{{client[4]}}</td>	<!-- ID Type -->
+		  <td>{{client[5]}}</td>	<!-- ID Number -->
+		  <td>{{client[6]}}</td>	<!-- Address -->
+	  </tr>
+		  {% endfor %}
+	</tbody>
+  </table>
+
 {% endblock %}
