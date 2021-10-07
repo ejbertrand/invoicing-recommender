@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, jsonify, make_resp
 from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
+from sqlalchemy.sql.expression import func
 from ..models import Service, Payment, Transaction, User, Identification, Client
 from .. import db
 import json
@@ -29,17 +30,20 @@ g_invoice_dt = g_utc_dt.astimezone(pytz.timezone(g_timezone))
 @login_required
 def home():
 	try:
+		clients = db.session.query(Client).order_by(Client.client_name.asc()).all()
 		services = db.session.query(Service).filter_by(parent_id=None).all()
 		payments = db.session.query(Payment).all()
 		if (session["transaction_state"] == "ACTIVE"):
 			formatted_account = "{:,.2f}".format(round(session["account"], 2))
 			return render_template("home.html", user = current_user, services = services, \
 				payments = payments, transaction_state = session["transaction_state"], \
-				client_name = session["client_name"], payment_id = session["payment_id"], \
-				comments = session["comments"], items = session["items"], account = formatted_account)
+				client_id = session["client_id"], payment_id = session["payment_id"], \
+				comments = session["comments"], items = session["items"], \
+				clients = clients, account = formatted_account)
 		else:
 			return render_template("home.html", user = current_user, services = services, \
-				payments = payments, transaction_state = session["transaction_state"])
+				payments = payments, transaction_state = session["transaction_state"], \
+				clients = clients)
 	except KeyError:
 		print("\nOops: A KeyError exception was raised\n")
 		return redirect(url_for('auth.logout'))
@@ -122,7 +126,8 @@ def show_transactions():
 			#ParentService.service_type, ## To enable
 			#Service.service_type,
 			Payment.payment_type,
-			Transaction.client_name,
+			#Transaction.client_name,
+			Client.client_name,
 			Transaction.account,
 			Transaction.comment
 		)
@@ -130,6 +135,7 @@ def show_transactions():
 		#.join(Service)
 		#.join(Service.service_parent.of_type(ParentService))
 		.join(Payment)
+		.join(Client)
 		.order_by(Transaction.id.asc())
 		.all()
 	)
@@ -147,6 +153,7 @@ def clients():
 	all_identifications = db.session.query(Identification).all()
 	clients = (
 		db.session.query(
+			Client.id,
 			Client.client_name,
 			Client.tel_number,
 			Client.alt_number,
@@ -200,7 +207,7 @@ def get_subservices():
 @login_required
 def open_transaction():
 	session["transaction_state"] = "OPEN"
-	session["client_name"] = ""
+	session["client_id"] = 0
 	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
@@ -223,7 +230,7 @@ def add_item():
 	serviceId = item_dic["serviceId"]
 	subserviceId = item_dic["subserviceId"]
 	total = float(item_dic["total"])
-	session["client_name"] = item_dic["client_name"]
+	session["client_id"] = int(item_dic["client_id"])
 	session["payment_id"] = int(item_dic["payment_id"])
 	session["comments"] = item_dic["comments"]
 	service = db.session.query(Service.service_type).filter_by(id=serviceId).all()[0][0]
@@ -263,7 +270,7 @@ def delete_item():
 @login_required
 def clean_session():
 	session["transaction_state"] = "INACTIVE"
-	session["client_name"] = ""
+	session["client_id"] = 0
 	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
@@ -291,7 +298,7 @@ def set_invoice_info():
 	elif (not check_float(transaction_dic["payment_amount"])):
 		flag = 3	# Payment is not a numerical value
 	else:
-		session["client_name"] = transaction_dic['client_name']
+		session["client_id"] = int(transaction_dic['client_id'])
 		session["payment_id"] = int(transaction_dic['payment_id'])
 		session["comments"] = transaction_dic['comments']
 		session["payment_amount"] = float(transaction_dic["payment_amount"])
@@ -322,17 +329,19 @@ def print_invoice():
 	date = month + " " + str(day) + ", " + str(year)
 	time = str(hour) + ":" + minute_formatted + " " + period
 
+	client = db.session.query(Client).filter_by(id = session["client_id"]).all()[0]
 	payment = db.session.query(Payment.payment_type).filter_by(id = session['payment_id']).all()
 	formatted_account = "{:,.2f}".format(round(session["account"], 2))
 	formatted_payment = "{:,.2f}".format(round(session["payment_amount"], 2))
 	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
 
-	invoice_number = 24 # Need to retrieve from DB
-	client_address = "87 Private St. Seattle, WA" # Need to retrieve from DB
-	client_email = "smith@gmail.com" # Need to retrieve from DB
-	client_telno = "990-302-1898" # Need to retrieve from DB
+	invoice_number = db.session.query(func.max(Transaction.id)).all()[0][0] + 1
+	client_name = client.client_name
+	client_address = client.address #"87 Private St. Seattle, WA" # Need to retrieve from DB
+	client_email = client.client_email #"smith@gmail.com" # Need to retrieve from DB
+	client_telno = client.tel_number #"990-302-1898" # Need to retrieve from DB
 
-	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = session["client_name"], \
+	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = client_name, \
 		payment = payment[0][0], items = session["items"], account = formatted_account, payment_amount = formatted_payment, \
 		balance = formatted_balance, date = date, time = time, client_address = client_address, client_email = client_email, \
 		client_telno = client_telno) 
@@ -356,21 +365,14 @@ def close_transaction():
 	if (not session["printed_invoice"]):
 		flag = 3
 	else:
-		#transaction_dic = json.loads(request.data)
-		#client_name = transaction_dic["client_name"]
-		#payment_id = transaction_dic['payment_id']
-		#comments = transaction_dic["comments"]
 		transaction = Transaction(
 			date = g_invoice_dt,
 			user_id = current_user.id,
-			#payment_id = payment_id,
 			payment_id = session["payment_id"],
-			client_name = session["client_name"],
-			#client_name = client_name,
+			client_id = session["client_id"],
 			account = session['account'],
 			payment = session["payment_amount"],
 			balance = session["balance"],
-			#comment = comments)
 			comment = session["comments"])
 		db.session.add(transaction)
 		db.session.commit()
@@ -543,6 +545,37 @@ def add_client():
 		flash("Client added!", category = "success")
 	return clients()
 
+
+###################################################################
+# Function:		delete_client
+# Purpose:		Deletes a client
+# Return vals: 	Empty JSON
+###################################################################
+@views.route("/delete-client", methods = ["POST"])
+@login_required
+def	delete_client():
+	client_dic = json.loads(request.data)
+	client_id = client_dic["client_id"]
+	client = Client.query.get(client_id)
+	if client:
+		db.session.delete(client)
+		db.session.commit()
+	return jsonify({})
+
+
+@views.route("/edit-client", methods = ["POST"])
+@login_required
+def	edit_client():
+	client_dic = json.loads(request.data)
+	client_id = client_dic["client_id"]
+	client_name = client_dic["client_name"]
+	client_tel = client_dic["client_tel"]
+	client_stel = client_dic["client_stel"]
+	client_email = client_dic["client_email"]
+	client_idno = client_dic["client_idno"]
+	client_address = client_dic["client_address"]
+	print(client_id, client_name, client_tel, client_stel, client_email, client_idno, client_address)
+	return jsonify({})
 
 
 ###################################################################

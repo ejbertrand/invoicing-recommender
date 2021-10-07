@@ -27,10 +27,10 @@ function cleanForm()
 }
 
 /*******************************************************************/
-/* Function Name: 	printTable
+/* Function Name: 	printItemsTable
 /* Purpose: 		Prints the transaction table into the HTML object
 /*******************************************************************/
-function printTable(json)
+function printItemsTable(json)
 {
 	var items_tbody = document.getElementById("items_table").getElementsByTagName('tbody')[0];
 	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
@@ -157,7 +157,7 @@ function deleteItem(rowId)
 		body: JSON.stringify({rowId: rowId}),
 	})
 	.then(response => response.json())
-	.then(json => printTable(json))
+	.then(json => printItemsTable(json))
 	.catch(error => {
 		console.log("Error!");
 		console.error(error);
@@ -172,7 +172,7 @@ function addItem(){
 	var serviceId = document.getElementById("input_service").value;
 	var subserviceId = document.getElementById("input_subservice").value;
 	var total = document.getElementById("total").value;
-	var client_name = document.getElementById("client_name").value;
+	var client_id = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
@@ -185,12 +185,12 @@ function addItem(){
 		fetch("/add-item", {
 			method: "POST",
 			body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId,
-				total: total, client_name: client_name, payment_id: payment_id,
+				total: total, client_id: client_id, payment_id: payment_id,
 				comments: comments}),
 		})
 		.then(response => response.json())
 		.then(json => {
-			printTable(json);
+			printItemsTable(json);
 			let total = document.getElementById("total");
 			let servicebox = document.getElementById("input_service");
 
@@ -210,20 +210,20 @@ function addItem(){
 /* Purpose: 		Generate the invoice to be printed
 /*******************************************************************/
 function printInvoice(){
-	var client_name = document.getElementById("client_name").value;
+	var client_id = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 	var payment_amount = document.getElementById("payment_amount").value;
 
-	if (client_name == "")
-		alert("The client name is empty!");
+	if (client_id == "0")
+		alert("No client was chosen!");
 	else if (payment_id == "0")
 		alert("No payment method was selected!");
 	else
 	{
 		fetch("/set-invoice-info", {
 			method: "POST",
-			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
+			body: JSON.stringify({client_id: client_id, payment_id: payment_id, 
 				comments: comments, payment_amount : payment_amount}),
 		})
 		.then(response => response.json())
@@ -253,7 +253,7 @@ function printInvoice(){
 function closeTransaction(){
 	var client_name = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
-	var comments = document.getElementById("comments").value;
+	//var comments = document.getElementById("comments").value;
 
 	if (client_name == "")
 		alert("The client name is empty!");
@@ -384,4 +384,153 @@ function deleteService(serviceId) {
 	  console.log('Error!');
 	  console.error(error);
 	});
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: deleteClient
+  /* Purpose: 		Deletes a client from the database
+  /***********************************************************************************/
+  function deleteClient(client_id) {
+	fetch("/delete-client", {
+	  method: "POST",
+	  body: JSON.stringify({ client_id: client_id }),
+	})
+	.then(response => {
+	  window.location.href = "/clients";
+	})
+	.catch(error => {
+	  console.log('Error!');
+	  console.error(error);
+	});
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: editClient
+  /* Purpose: 		Edit client information
+  /***********************************************************************************/
+  function editClient(client_id) {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email', 'row-client-idno', 'row-client-address'];
+	var i = 0;
+
+	disableClientActions();	
+	// Creating the input fields on the table, in the respective row.
+	for (let column_index = 0; column_index <= 6; column_index++)
+	{
+		if (column_index == 4)
+			continue;
+		let newHTML = "<input type='text' id='" + columns[i] + "-" + client_id + "' value ='" + row[column_index].innerHTML + "' size='10'>";
+		row[column_index].innerHTML = newHTML;
+		i++;
+	}
+	// Setting event (Enter key) listener to the input fields
+	for (let column_index = 0; column_index < columns.length; column_index++)
+	{
+		let node = document.getElementById(columns[column_index] + "-" + client_id);
+		node.addEventListener('keydown', function onEvent(event)
+		{
+			if (event.key == "Enter")
+				saveClientChanges(columns, client_id);
+		});
+	}
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: saveClientChanges
+  /* Purpose: 		Save the changes made on the client row
+  /***********************************************************************************/
+  function saveClientChanges(columns, client_id)
+  {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	const client_info = [];
+
+	for (let i = 0; i <= 5; i++)
+		client_info[i] = document.getElementById(columns[i] + "-" + client_id).value;	
+	fetch("/edit-client", {
+		method: "POST",
+		body: JSON.stringify({ client_id: client_id, client_name: client_info[0],
+			client_tel: client_info[1], client_stel: client_info[2], client_email: client_info[3],
+			client_idno: client_info[4], client_address: client_info[5]}),
+	 })
+	 .then(response => {
+		let  i = 0;
+
+		for (let column_index = 0; column_index <= 6; column_index++)
+		{
+			if (column_index == 4)
+				continue;
+			row[column_index].innerHTML = client_info[i];
+			i++;
+		}
+		enableClientActions();
+	 })
+	 .catch(error => {
+		 console.log('Error!');
+		 console.error(error);
+	 });
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: disableClientActions
+  /* Purpose: 		Disable all client action fields and buttons (protection while editing)
+  /***********************************************************************************/
+  function printClientTable(client_id)
+  {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email', 'row-client-idno', 'row-client-address'];
+	var i = 0;
+
+	for (let column_index = 0; column_index <= 6; column_index++)
+	{
+		if (column_index == 4)
+			continue;
+		let newHTML = "<input type='text' id='" + columns[i] + "-" + client_id + "' value ='" + row[column_index].innerHTML + "' size='10'>";
+		row[column_index].innerHTML = newHTML;
+		i++;
+	}
+  }
+
+  /***********************************************************************************/
+  /* Function Name: disableClientActions
+  /* Purpose: 		Disable all client action fields and buttons (protection while editing)
+  /***********************************************************************************/
+  function disableClientActions()
+  {
+	var table = document.getElementById("clients_table");
+	var form = document.getElementById("client-form");
+	var elements = form.elements;
+
+	for (let i = 1; i < table.rows.length; i++)
+	{
+		document.getElementById("btn-editclient-" + i).disabled = true;
+		document.getElementById("btn-delclient-" + i).disabled = true;
+	}
+	for (var i = 0, len = elements.length; i < len; ++i) 
+    	elements[i].readOnly = true;
+	document.getElementById("btn-add-client").disabled = true;
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: enableClientActions
+  /* Purpose: 		Enable all client action fields and buttons (after editing)
+  /***********************************************************************************/
+  function enableClientActions()
+  {
+	var table = document.getElementById("clients_table");
+	var form = document.getElementById("client-form");
+	var elements = form.elements;
+
+	for (let i = 1; i < table.rows.length; i++)
+	{
+		document.getElementById("btn-editclient-" + i).disabled = false;
+		document.getElementById("btn-delclient-" + i).disabled = false;
+	}
+	for (var i = 0, len = elements.length; i < len; ++i) 
+    	elements[i].readOnly = false;
+	document.getElementById("btn-add-client").disabled = false;
   }

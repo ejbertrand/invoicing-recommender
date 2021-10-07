@@ -14,16 +14,39 @@
 	<form method="POST" id="transaction_form">
 {% endif %}
 		<h4 align="left">General information</h4>
+		
 		<!-- First group -->
 		<div class="row">
-			<div class="form-group col-md-7">
+			<div class="col-md-7">
 				<label for="client_name">Client Name</label>
+				<select name="client_name" id="client_name" class="form-control">
 				{% if transaction_state == "ACTIVE" %}
-					<input name="client_name" id="client_name" class="form-control" value="{{client_name}}"></input>
+					{% if client_id == 0 %}
+							<option selected value="0">Choose...</option>
+							{% for client in clients %}
+							<option value="{{client.id}}">{{client.client_name}}</option>
+							{% endfor %}
+						{% else %}
+							<option value="0">Choose...</option>
+							{% for client in clients %}
+								{% if client_id == client.id %}
+								<option selected value="{{client.id}}">{{client.client_name}}</option>
+								{% else %}
+								<option value="{{client.id}}">{{client.client_name}}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
 				{% else %}
-					<input name="client_name" id="client_name" class="form-control"></input>
+					<option selected value="0">Choose...</option>
+					{% for client in clients %}
+					<option value="{{client.id}}">{{client.client_name}}</option>
+					{% endfor %}
 				{% endif %}
+				</select>
+				&emsp;<a href="/clients"><small>The client's name is not listed? Click here.</small></a>
+				<small><br/><br/></small>
 			</div>
+
 			<!-- Payment method dropdown list -->
 			<div class="col-md-5">
 				<label for="input_payment">Payment Method</label>
@@ -32,15 +55,15 @@
 						{% if payment_id == 0 %}
 							<option selected value="0">Choose...</option>
 							{% for payment in payments %}
-								<option value="{{payment.id}}">{{payment.payment_type}}</option>
+							<option value="{{payment.id}}">{{payment.payment_type}}</option>
 							{% endfor %}
 						{% else %}
 							<option value="0">Choose...</option>
 							{% for payment in payments %}
 								{% if payment_id == payment.id %}
-									<option selected value="{{payment.id}}">{{payment.payment_type}}</option>
+								<option selected value="{{payment.id}}">{{payment.payment_type}}</option>
 								{% else %}
-									<option value="{{payment.id}}">{{payment.payment_type}}</option>
+								<option value="{{payment.id}}">{{payment.payment_type}}</option>
 								{% endif %}
 							{% endfor %}
 						{% endif %}
@@ -52,7 +75,8 @@
 					{% endif %}
 				</select><br/>
 			</div>
-		</div>
+		</div>	
+
 		<!-- Comments -->
 		<label for="comments">Comments (Optional)</label>
 		{% if transaction_state == "ACTIVE" %}
@@ -62,6 +86,7 @@
 		{% endif %}
 		<h4 align="left">What would you like to register?</h4>
 		<div class="form-row">
+			
 			<!-- Service dropdown list -->
 			<div class="col-md-4">
 				<label for="input_service">Service</label>
@@ -73,6 +98,7 @@
 				</select>
 				<br/>
 			</div>
+			
 			<!-- Subservice dropdown list -->
 			<div class="col-md-4 offset-md-1">
 				<label for="input_subservice">Subservice</label>
@@ -89,10 +115,13 @@
 				</div>
 			</div>
 		</div>
-		<!-- Buttons -->
+		
+		<!-- Buttons and Table-->
 		<div align="center">
 			<button type="button" class="btn btn-secondary btn-block" onClick="addItem()">Add Item</button>
 			<br/>
+
+			<!-- Items Table-->
 			<table class="table" id="items_table" style="width: 100%">
 				<colgroup>
 					<col style="width: 70%;">
