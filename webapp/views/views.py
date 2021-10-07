@@ -181,13 +181,27 @@ def clients():
 def get_subservices():
 	service_dic = json.loads(request.data)
 	serviceId = service_dic['serviceId']
-	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all();
+	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all()
 	subservices_lst = [[item.id, item.service_type] for item in subservices]
 	return jsonify(subservices_lst)
 
 
 
-
+#############################################################################
+# Function:		get_id_types
+# Purpose:		Get the types of IDs avaiable
+# Return vals: 	JSON containing a list of tuples containing (ID_id, ID_types)
+#############################################################################
+@views.route("/get-id-types", methods = ["POST"])
+@login_required
+def get_id_types():
+	ids_dic = json.loads(request.data)
+	chosen_id_type = ids_dic['chosenIdType']
+	chosen_id = db.session.query(Identification.id).filter_by(id_type=chosen_id_type).all()
+	ids = db.session.query(Identification).all()
+	ids_lst = [[id.id, id.id_type] for id in ids]
+	ids_lst.append(chosen_id[0][0])
+	return jsonify(ids_lst)
 
 
 
@@ -572,9 +586,21 @@ def	edit_client():
 	client_tel = client_dic["client_tel"]
 	client_stel = client_dic["client_stel"]
 	client_email = client_dic["client_email"]
+	client_idtype = client_dic["client_idtype"]
 	client_idno = client_dic["client_idno"]
 	client_address = client_dic["client_address"]
-	print(client_id, client_name, client_tel, client_stel, client_email, client_idno, client_address)
+	id = db.session.query(Identification).filter_by(id_type=client_idtype).all()[0]
+	client = db.session.query(Client).filter_by(id=int(client_id)).all()[0]
+	if (client and id):
+		updated_client = Client.query.filter_by(id=client.id).first()
+		updated_client.client_name = client_name
+		updated_client.tel_number = client_tel
+		updated_client.alt_number = client_stel
+		updated_client.client_email = client_email
+		updated_client.id_id = id.id
+		updated_client.id_number = client_idno
+		updated_client.address = client_address
+		db.session.commit()
 	return jsonify({})
 
 

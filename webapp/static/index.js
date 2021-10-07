@@ -331,6 +331,7 @@ function deleteSubservice(subserviceId) {
 	});
   }
 
+
 /***********************************************************************************/
 /* Function Name: 	deleteService
 /* Purpose: 		Deletes a service from the services list
@@ -349,10 +350,11 @@ function deleteService(serviceId) {
 	});
   }
   
-  /***********************************************************************************/
-  /* Function Name: deletePayment
-  /* Purpose: 		Deletes a payment from the payment list
-  /***********************************************************************************/
+
+/***********************************************************************************/
+/* Function Name: deletePayment
+/* Purpose: 		Deletes a payment from the payment list
+/***********************************************************************************/
   function deletePayment(payment_id) {
 	fetch("/delete-payment-method", {
 	  method: "POST",
@@ -387,6 +389,12 @@ function deleteService(serviceId) {
   }
 
 
+
+
+/*******************************************************************/
+/********************** CLIENT CONFIGURATION ***********************/
+/*******************************************************************/
+
   /***********************************************************************************/
   /* Function Name: deleteClient
   /* Purpose: 		Deletes a client from the database
@@ -412,22 +420,30 @@ function deleteService(serviceId) {
   /***********************************************************************************/
   function editClient(client_id) {
 	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
-	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email', 'row-client-idno', 'row-client-address'];
-	var i = 0;
+	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email',
+	 				'sel-client-idtyp', 'row-client-idno', 'row-client-address'];
+	var newHTML = "";
+	var chosenIdType = "";
 
 	disableClientActions();	
-	// Creating the input fields on the table, in the respective row.
+	// Creating the input fields on the client's row
 	for (let column_index = 0; column_index <= 6; column_index++)
 	{
 		if (column_index == 4)
-			continue;
-		let newHTML = "<input type='text' id='" + columns[i] + "-" + client_id + "' value ='" + row[column_index].innerHTML + "' size='10'>";
+		{
+			newHTML = "<select id='" + columns[column_index] + "-" + client_id + "' class='form-control'></select>";
+			chosenIdType = row[column_index].innerHTML;
+		}
+		else
+			newHTML = "<input type='text' id='" + columns[column_index] + "-" + client_id + "' value ='" + 
+						row[column_index].innerHTML + "' size='10'>";
 		row[column_index].innerHTML = newHTML;
-		i++;
 	}
-	// Setting event (Enter key) listener to the input fields
+	// Setting event listener (Enter key) to the input fields of the row
 	for (let column_index = 0; column_index < columns.length; column_index++)
 	{
+		if (column_index == 4)
+			continue;
 		let node = document.getElementById(columns[column_index] + "-" + client_id);
 		node.addEventListener('keydown', function onEvent(event)
 		{
@@ -435,68 +451,25 @@ function deleteService(serviceId) {
 				saveClientChanges(columns, client_id);
 		});
 	}
-  }
-
-
-  /***********************************************************************************/
-  /* Function Name: saveClientChanges
-  /* Purpose: 		Save the changes made on the client row
-  /***********************************************************************************/
-  function saveClientChanges(columns, client_id)
-  {
-	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
-	const client_info = [];
-
-	for (let i = 0; i <= 5; i++)
-		client_info[i] = document.getElementById(columns[i] + "-" + client_id).value;	
-	fetch("/edit-client", {
-		method: "POST",
-		body: JSON.stringify({ client_id: client_id, client_name: client_info[0],
-			client_tel: client_info[1], client_stel: client_info[2], client_email: client_info[3],
-			client_idno: client_info[4], client_address: client_info[5]}),
-	 })
-	 .then(response => {
-		let  i = 0;
-
-		for (let column_index = 0; column_index <= 6; column_index++)
-		{
-			if (column_index == 4)
-				continue;
-			row[column_index].innerHTML = client_info[i];
-			i++;
-		}
-		enableClientActions();
-	 })
-	 .catch(error => {
-		 console.log('Error!');
-		 console.error(error);
-	 });
-  }
-
-
-  /***********************************************************************************/
-  /* Function Name: disableClientActions
-  /* Purpose: 		Disable all client action fields and buttons (protection while editing)
-  /***********************************************************************************/
-  function printClientTable(client_id)
-  {
-	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
-	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email', 'row-client-idno', 'row-client-address'];
-	var i = 0;
-
-	for (let column_index = 0; column_index <= 6; column_index++)
+	fetch("/get-id-types", 
 	{
-		if (column_index == 4)
-			continue;
-		let newHTML = "<input type='text' id='" + columns[i] + "-" + client_id + "' value ='" + row[column_index].innerHTML + "' size='10'>";
-		row[column_index].innerHTML = newHTML;
-		i++;
-	}
+		method: "POST",
+		body: JSON.stringify({chosenIdType: chosenIdType}),
+	})
+	.then(response => response.json())
+	.then(json => {
+		loadIDTypes(columns[4] + "-" + client_id, json);
+	})
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	  });
   }
 
-  /***********************************************************************************/
+
+ /***********************************************************************************/
   /* Function Name: disableClientActions
-  /* Purpose: 		Disable all client action fields and buttons (protection while editing)
+  /* Purpose: 		Disable New Client form and action buttons
   /***********************************************************************************/
   function disableClientActions()
   {
@@ -512,12 +485,70 @@ function deleteService(serviceId) {
 	for (var i = 0, len = elements.length; i < len; ++i) 
     	elements[i].readOnly = true;
 	document.getElementById("btn-add-client").disabled = true;
+	document.getElementById("choose_id").disabled = true;
   }
 
 
   /***********************************************************************************/
+  /* Function Name: saveClientChanges
+  /* Purpose: 		Save the changes made on the client row
+  /***********************************************************************************/
+  function saveClientChanges(columns, client_id)
+  {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	const client_info = [];
+
+	for (let i = 0; i <= 6; i++)
+	{
+		if (i == 4)
+		{
+			let idtype_select = document.getElementById(columns[i] + "-" + client_id);
+			client_info[i] = idtype_select.options[idtype_select.selectedIndex].text;
+		}
+		else
+			client_info[i] = document.getElementById(columns[i] + "-" + client_id).value;
+	}
+	fetch("/edit-client", {
+		method: "POST",
+		body: JSON.stringify({ client_id: client_id, client_name: client_info[0],
+			client_tel: client_info[1], client_stel: client_info[2], client_email: client_info[3],
+			client_idtype: client_info[4], client_idno: client_info[5], client_address: client_info[6]}),
+	 })
+	 .then(response => {
+		for (let column_index = 0; column_index <= 6; column_index++)
+			row[column_index].innerHTML = client_info[column_index];
+		alert("Client information was updated succesfully");
+		enableClientActions();
+	 })
+	 .catch(error => {
+		 console.log('Error!');
+		 console.error(error);
+	 });
+  }
+
+
+/***********************************************************************************/
+/* Function Name: 	loadIDTypes
+/* Purpose: 		Loads the option HTML element with the corresponding ID types
+/***********************************************************************************/
+function loadIDTypes(elementId, content)
+{
+	var dropdown = document.getElementById(elementId);
+	var chosenId = content[content.length - 1];
+
+    for(let i = 0; i < content.length - 1; i++){
+      option = document.createElement('option');
+	  option.value = content[i][0];
+      option.text = content[i][1];
+      dropdown.add(option);
+    }
+	dropdown.value = chosenId;
+}
+
+
+  /***********************************************************************************/
   /* Function Name: enableClientActions
-  /* Purpose: 		Enable all client action fields and buttons (after editing)
+  /* Purpose: 		Enable New Client form and action buttons
   /***********************************************************************************/
   function enableClientActions()
   {
@@ -533,4 +564,5 @@ function deleteService(serviceId) {
 	for (var i = 0, len = elements.length; i < len; ++i) 
     	elements[i].readOnly = false;
 	document.getElementById("btn-add-client").disabled = false;
+	document.getElementById("choose_id").disabled = false;
   }
