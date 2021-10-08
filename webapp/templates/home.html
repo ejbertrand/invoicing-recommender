@@ -155,7 +155,11 @@
 					<tr>
 						<th style="text-align: right;">Payment</th>
 						<th>
+							{% if transaction_state == "ACTIVE" %}
+							<input type="text" class="form-control" name="payment_amount" id="payment_amount" value="{{formatted_payment}}"></input>
+							{% else %}
 							<input type="text" class="form-control" name="payment_amount" id="payment_amount"></input>
+							{% endif %}
 						</th>
 						<th></th>
 					</tr>

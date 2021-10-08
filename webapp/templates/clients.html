@@ -8,6 +8,7 @@
 	<form method="POST" action="/add-client" id="client-form">
 
 		<h6>Adding a new client?</h6>
+		<small>(*) Mandatory fields</small>
 		<div class="row">
 			<div class="col-md-6">
 				<label for="client_name">Client name *</label>
@@ -21,7 +22,7 @@
 
 		<div class="row">
 			<div class="col-md-3">
-				<label for="client_tel">Telephone *</label>
+				<label for="client_tel">Main phone *</label>
 				<input class="form-control" id="client_tel" name="client_tel" placeholder="(###) ### - ####"></input><br/>
 			</div>
 			<div class="col-md-3">
@@ -48,17 +49,18 @@
 				<label for="client_idno">Identification No.</label>
 				<input class="form-control" id="client_idno" name="client_idno" placeholder="ID Number"></input>
 			</div>
-		</div><br/>
-
-		<button type="submit" class="btn btn-warning" id="btn-add-client">Add Client</button>
+		</div>
+		<br/>
+		<button type="button" class="btn btn-warning" id="btn-add-client" onClick="addClient()">Add Client</button>
 	</form>
 </div><br/>
 
+<!-- Table showing the clients -->
 <table class="table table-hover" id="clients_table">
 	<thead class="thead-light text-center">
 	  <tr>
 		  <th scope="col">Name</th>
-		  <th scope="col">Phone</th>
+		  <th scope="col">Main Phone</th>
 		  <th scope="col">Secondary Phone</th>
 		  <th scope="col">E-mail</th>
 		  <th scope="col">ID Type</th>
@@ -101,7 +103,7 @@
 				<div class="modal-header">
 					<b>CAUTION!</b>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body" id="client-{{ client[0] }}-modal">
 					Are you sure you want to delete <b>{{ client[1] }}</b> as a client?
 				</div>
 				<div class="modal-footer">

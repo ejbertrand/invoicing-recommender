@@ -35,11 +35,12 @@ def home():
 		payments = db.session.query(Payment).all()
 		if (session["transaction_state"] == "ACTIVE"):
 			formatted_account = "{:,.2f}".format(round(session["account"], 2))
+			formatted_payment = "{:,.2f}".format(round(session["payment_amount"], 2))
 			return render_template("home.html", user = current_user, services = services, \
 				payments = payments, transaction_state = session["transaction_state"], \
 				client_id = session["client_id"], payment_id = session["payment_id"], \
 				comments = session["comments"], items = session["items"], \
-				clients = clients, account = formatted_account)
+				formatted_payment = formatted_payment, clients = clients, account = formatted_account)
 		else:
 			return render_template("home.html", user = current_user, services = services, \
 				payments = payments, transaction_state = session["transaction_state"], \
@@ -390,7 +391,7 @@ def close_transaction():
 			comment = session["comments"])
 		db.session.add(transaction)
 		db.session.commit()
-		## NEED DO ADD THE DETAILS OF THE TRANSACTION, BUT FOR THAT, WE NEED THE ID OF THE INVOICE
+		## NEED DO ADD THE DETAILS OF THE TRANSACTION
 			#service_id = db.session.query(Service.parent_id).filter_by(id=sid[0][0]).all()[0][0],
 			#subservice_id = sid[0][0],
 	return jsonify({"flag": flag})
@@ -533,31 +534,27 @@ def delete_identification():
 @views.route("/add-client", methods = ["POST"])
 @login_required
 def add_client():
-	alerts = 0
-	client_name = request.form.get("client_name")
-	client_address = request.form.get("client_address")
-	client_tel = request.form.get("client_tel")
-	client_stel = request.form.get("client_stel")
-	client_email = request.form.get("client_email")
-	id_id = request.form.get("choose_id")
-	client_idno = request.form.get("client_idno")
-
-	if (client_name == "" or len(client_name) < 3):
-		flash("The name is too short!", category = "error")
-		alerts += 1
-	if (client_address == "" or len(client_address) < 5):
-		flash("The address is too short!", category = "error")
-		alerts += 1
-	if (client_tel == "" or len(client_tel) < 10):
-		flash("The telephone number is too short!", category = "error")
-		alerts += 1
-	if (alerts == 0):
+	flag = 0
+	client_dic = json.loads(request.data)
+	client_name = client_dic["client_name"]
+	client_address = client_dic["client_address"]
+	client_tel = client_dic["client_tel"]
+	client_stel = client_dic["client_stel"]
+	client_email = client_dic["client_email"]
+	id_id = client_dic["id_id"]
+	print("HERE IT IS: ", id_id)
+	if (id_id == '0' or not id_id):
+		id_id = db.session.query(func.min(Identification.id)).first()[0]
+	client_idno = client_dic["client_idno"]
+	try:
 		new_client = Client(client_name = client_name, address = client_address, tel_number = client_tel, \
 			alt_number = client_stel, id_id = id_id, id_number = client_idno, client_email = client_email)
 		db.session.add(new_client)
 		db.session.commit()
-		flash("Client added!", category = "success")
-	return clients()
+	except Exception as e:
+		flag = 1
+		print(e)
+	return jsonify({"flag": flag})
 
 
 ###################################################################

@@ -395,6 +395,52 @@ function deleteService(serviceId) {
 /********************** CLIENT CONFIGURATION ***********************/
 /*******************************************************************/
 
+	/*******************************************************************/
+	/* Function Name: 	addClient
+	/* Purpose: 		Adds an item into the transaction table
+	/*******************************************************************/
+	function addClient(){
+		var client_name = document.getElementById("client_name").value;
+		var client_address = document.getElementById("client_address").value;
+		var client_tel = document.getElementById("client_tel").value;
+		var client_stel = document.getElementById("client_stel").value;
+		var client_email = document.getElementById("client_email").value;
+		var id_id = document.getElementById("choose_id").value;
+		var client_idno = document.getElementById("client_idno").value;
+
+		if (client_name == "")
+			alert("The client name is empty!");
+		else if (client_address == "")
+			alert("The address is empty!");
+		else if (client_tel == "")
+			alert("The telephone number is empty!");
+		else
+		{
+			fetch("/add-client", {
+				method: "POST",
+				body: JSON.stringify({client_name: client_name, client_address: client_address,
+				client_tel: client_tel, client_stel: client_stel, client_email: client_email,
+				id_id: id_id, client_idno: client_idno}),
+			})
+			.then(response => response.json())
+			.then(json => {
+				if(json["flag"] == 0)
+				{
+					alert("The client was added!");
+					window.location.href = "/clients";
+				}
+				else
+					alert("Sorry, an error ocurred!");
+			})
+			.catch(error => {
+				console.log('Error!');
+				console.error(error);
+			});
+		}
+	}
+
+
+
   /***********************************************************************************/
   /* Function Name: deleteClient
   /* Purpose: 		Deletes a client from the database
@@ -496,34 +542,45 @@ function deleteService(serviceId) {
   function saveClientChanges(columns, client_id)
   {
 	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
-	const client_info = [];
+	var client_name = document.getElementById(columns[0] + "-" + client_id).value;
+	var client_tel = document.getElementById(columns[1] + "-" + client_id).value;
+	var client_stel = document.getElementById(columns[2] + "-" + client_id).value;
+	var client_email = document.getElementById(columns[3] + "-" + client_id).value;
+	var idtype_select = document.getElementById(columns[4] + "-" + client_id);
+	var client_idtype = idtype_select.options[idtype_select.selectedIndex].text;
+	var client_idno = document.getElementById(columns[5] + "-" + client_id).value;
+	var client_address = document.getElementById(columns[6] + "-" + client_id).value;
 
-	for (let i = 0; i <= 6; i++)
+	if (client_name == "")
+		alert("Name cannot be left empty!");
+	else if (client_tel == "")
+		alert("Main phone cannot be left empty!");
+	else if (client_address == "")
+		alert("Address cannot be left empty!");
+	else
 	{
-		if (i == 4)
-		{
-			let idtype_select = document.getElementById(columns[i] + "-" + client_id);
-			client_info[i] = idtype_select.options[idtype_select.selectedIndex].text;
-		}
-		else
-			client_info[i] = document.getElementById(columns[i] + "-" + client_id).value;
+		fetch("/edit-client", 
+		 {
+			method: "POST",
+			body: JSON.stringify({client_id: client_id, client_name: client_name,
+				client_tel: client_tel, client_stel: client_stel, client_email: client_email,
+				client_idtype: client_idtype, client_idno: client_idno, client_address: client_address})
+		 })
+		 .then(response => {
+			const client_info = [client_name, client_tel, client_stel, client_email,
+				client_idtype, client_idno, client_address];
+			var client_modal = document.getElementById("client-" + client_id + "-modal");
+			for (let column_index = 0; column_index <= 6; column_index++)
+				row[column_index].innerHTML = client_info[column_index];
+			client_modal.innerHTML = "Are you sure you want to delete <b>" + client_name + "</b> as a client?";
+			alert("Client updated succesfully!");
+			enableClientActions();
+		 })
+		 .catch(error => {
+			 console.log('Error!');
+			 console.error(error);
+		 });
 	}
-	fetch("/edit-client", {
-		method: "POST",
-		body: JSON.stringify({ client_id: client_id, client_name: client_info[0],
-			client_tel: client_info[1], client_stel: client_info[2], client_email: client_info[3],
-			client_idtype: client_info[4], client_idno: client_info[5], client_address: client_info[6]}),
-	 })
-	 .then(response => {
-		for (let column_index = 0; column_index <= 6; column_index++)
-			row[column_index].innerHTML = client_info[column_index];
-		alert("Client information was updated succesfully");
-		enableClientActions();
-	 })
-	 .catch(error => {
-		 console.log('Error!');
-		 console.error(error);
-	 });
   }
 
 
