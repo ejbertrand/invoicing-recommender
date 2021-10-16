@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, request, flash, jsonify, make_resp
 from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
-from ..models import Service, Payment, Transaction, User
+from sqlalchemy.sql.expression import func
+from ..models import Service, Payment, Transaction, User, Identification, Client
 from .. import db
 import json
 import pdfkit
@@ -29,35 +30,39 @@ g_invoice_dt = g_utc_dt.astimezone(pytz.timezone(g_timezone))
 @login_required
 def home():
 	try:
-		services = db.session.query(Service).filter_by(parent_id=None).all()
+		clients = db.session.query(Client).order_by(Client.name.asc()).all()
+		services = db.session.query(Service).filter_by(service_parent_id=None).all()
 		payments = db.session.query(Payment).all()
 		if (session["transaction_state"] == "ACTIVE"):
 			formatted_account = "{:,.2f}".format(round(session["account"], 2))
+			formatted_payment = "{:,.2f}".format(round(session["payment_amount"], 2))
 			return render_template("home.html", user = current_user, services = services, \
 				payments = payments, transaction_state = session["transaction_state"], \
-				client_name = session["client_name"], payment_id = session["payment_id"], \
-				comments = session["comments"], items = session["items"], account = formatted_account)
+				client_id = session["client_id"], payment_id = session["payment_id"], \
+				comments = session["comments"], items = session["items"], \
+				formatted_payment = formatted_payment, clients = clients, account = formatted_account)
 		else:
 			return render_template("home.html", user = current_user, services = services, \
-				payments = payments, transaction_state = session["transaction_state"])
+				payments = payments, transaction_state = session["transaction_state"], \
+				clients = clients)
 	except KeyError:
-		print("\nOops: A KeyError exception was raised\n")
+		print("\nOops: A KeyError exception was raised. (Probably no Clients, Services and Payemtns registered yet.\n")
 		return redirect(url_for('auth.logout'))
 
 
 ###################################################################
 # Function:		configure_service
 # Purpose:		Loads the Service Config page
-# Return vals: 	Rendered HTML of the Service Config page
+# Return vals: 	Rendered HTML of the Services config page
 ###################################################################
 @views.route('/services-config')
 @login_required
 def configure_service():
 	all_services = db.session.query(Service).all()	# List of Service objects
-	srv_dict = {service.id:service.service_type for service in all_services if service.parent_id is None}
-	subsrv_dict = {service.id:dict() for service in all_services if service.parent_id is None}
+	srv_dict = {service.id:service.type for service in all_services if service.service_parent_id is None}
+	subsrv_dict = {service.id:dict() for service in all_services if service.service_parent_id is None}
 	for item in subsrv_dict:
-		subsrv_dict[item] = {service.id: service.service_type for service in all_services if (service.parent_id == item)}
+		subsrv_dict[item] = {service.id: service.type for service in all_services if (service.service_parent_id == item)}
 	return render_template("services.html", user = current_user, srv_dict = srv_dict, subsrv_dict = subsrv_dict)
 
 
@@ -65,22 +70,44 @@ def configure_service():
 # Function:		configure_payment
 # Purpose:		Loads the Payment Config page, and adds a new 
 #				payment if called with POST
-# Return vals: 	Rendered HTML of the Payment Config page
+# Return vals: 	Rendered HTML of the Payments config page
 ###################################################################
 @views.route("/payment-config", methods = ['GET', 'POST'])
 @login_required
 def configure_payment():
 	if request.method == 'POST':
-		payment_type = request.form.get("payment-type")
+		payment_type = request.form.get("payment_type")
 		if len(payment_type) < 3:
 			flash("The payment type is too short!", category = "error")
 		else:
-			new_payment = Payment(payment_type = payment_type, payment_active = 1)
+			new_payment = Payment(type = payment_type, active = 1)
 			db.session.add(new_payment)
 			db.session.commit()
 			flash("Payment method added!", category = "success")
 	all_payments = db.session.query(Payment).all()
 	return render_template("payments.html", user = current_user, payments = all_payments)
+
+
+###################################################################
+# Function:		configure_identification
+# Purpose:		Loads the Payment Config page, and adds a new 
+#				payment if called with POST
+# Return vals: 	Rendered HTML of the Identifications config page
+###################################################################
+@views.route("/identification-config", methods = ['GET', 'POST'])
+@login_required
+def configure_identification():
+	if request.method == 'POST':
+		identification_type = request.form.get("identification_type")
+		if len(identification_type) < 3:
+			flash("The identification form is too short!", category = "error")
+		else:
+			new_identification = Identification(type = identification_type, active = 1)
+			db.session.add(new_identification)
+			db.session.commit()
+			flash("Identification form added!", category = "success")
+	all_identifications = db.session.query(Identification).all()
+	return render_template("identifications.html", user = current_user, identifications = all_identifications)
 
 
 ###################################################################
@@ -91,16 +118,17 @@ def configure_payment():
 @views.route('/transactions')
 @login_required
 def show_transactions():
-	ParentService = aliased(Service)
+	#ParentService = aliased(Service)
 	transactions = (
 		db.session.query(
 			Transaction.id,
 			Transaction.date,
-			User.user_name,
+			User.name,
 			#ParentService.service_type, ## To enable
 			#Service.service_type,
-			Payment.payment_type,
-			Transaction.client_name,
+			Payment.type,
+			#Transaction.client_name,
+			Client.name,
 			Transaction.account,
 			Transaction.comment
 		)
@@ -108,10 +136,40 @@ def show_transactions():
 		#.join(Service)
 		#.join(Service.service_parent.of_type(ParentService))
 		.join(Payment)
+		.join(Client)
 		.order_by(Transaction.id.asc())
 		.all()
 	)
 	return render_template("transactions.html", user = current_user, transactions = transactions)
+
+
+###################################################################
+# Function:		clients
+# Purpose:		Add, delete, or modify clients' information
+# Return vals: 	Rendered HTML of the Clients page
+###################################################################
+@views.route("/clients")
+@login_required
+def clients():
+	all_identifications = db.session.query(Identification).all()
+	clients = (
+		db.session.query(
+			Client.id,
+			Client.name,
+			Client.main_phone,
+			Client.secondary_phone,
+			Client.email,
+			Identification.type,
+			Client.identification_number,
+			Client.address,
+		)
+		.join(Identification)
+		.order_by(Client.name.asc())
+		.all()
+	)
+	return render_template("clients.html", user = current_user, identifications = all_identifications, \
+		clients = clients)
+
 
 
 ###################################################################
@@ -123,10 +181,29 @@ def show_transactions():
 @login_required
 def get_subservices():
 	service_dic = json.loads(request.data)
-	serviceId = service_dic['serviceId']
-	subservices = db.session.query(Service).filter_by(parent_id=serviceId).all();
-	subservices_lst = [[item.id, item.service_type] for item in subservices]
+	service_parent_id = service_dic['service_parent_id']
+	subservices = db.session.query(Service).filter_by(service_parent_id=service_parent_id).all()
+	subservices_lst = [[subservice.id, subservice.type] for subservice in subservices]
 	return jsonify(subservices_lst)
+
+
+
+#############################################################################
+# Function:		get_id_types
+# Purpose:		Get the types of IDs avaiable
+# Return vals: 	JSON containing a list of tuples containing (ID_id, ID_types)
+#############################################################################
+@views.route("/get-id-types", methods = ["POST"])
+@login_required
+def get_id_types():
+	identifications_dic = json.loads(request.data)
+	chosen_id_type = identifications_dic['chosen_id_type']
+	chosen_id = db.session.query(Identification.id).filter_by(type=chosen_id_type).all()
+	identifications = db.session.query(Identification).all()
+	identifications_lst = [[identification.id, identification.type] for identification in identifications]
+	identifications_lst.append(chosen_id[0][0])
+	return jsonify(identifications_lst)
+
 
 
 
@@ -145,7 +222,7 @@ def get_subservices():
 @login_required
 def open_transaction():
 	session["transaction_state"] = "OPEN"
-	session["client_name"] = ""
+	session["client_id"] = 0
 	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
@@ -165,14 +242,14 @@ def open_transaction():
 @login_required
 def add_item():
 	item_dic = json.loads(request.data)
-	serviceId = item_dic["serviceId"]
-	subserviceId = item_dic["subserviceId"]
+	service_id = item_dic["service_id"]
+	subservice_id = item_dic["subservice_id"]
 	total = float(item_dic["total"])
-	session["client_name"] = item_dic["client_name"]
+	session["client_id"] = int(item_dic["client_id"])
 	session["payment_id"] = int(item_dic["payment_id"])
 	session["comments"] = item_dic["comments"]
-	service = db.session.query(Service.service_type).filter_by(id=serviceId).all()[0][0]
-	subservice = db.session.query(Service.service_type).filter_by(id=subserviceId).all()[0][0]
+	service = db.session.query(Service.type).filter_by(id=service_id).all()[0][0]
+	subservice = db.session.query(Service.type).filter_by(id=subservice_id).all()[0][0]
 	session['items'].append((service, subservice, "{:,.2f}".format((total))))
 	session['account'] += float(total)
 	session["transaction_state"] = "ACTIVE"
@@ -190,9 +267,9 @@ def add_item():
 @login_required
 def delete_item():
 	item_dic = json.loads(request.data)
-	rowId = item_dic['rowId']
-	total = session['items'][rowId][2]
-	session['items'].pop(rowId)
+	row_id = item_dic['row_id']
+	total = session['items'][row_id][2]
+	session['items'].pop(row_id)
 	session['account'] -= float(total.replace(',', ''))
 	formatted_account = "{:,.2f}".format(round(session["account"], 2))
 	json_response = jsonify({"table": session["items"], "account": formatted_account})
@@ -208,7 +285,7 @@ def delete_item():
 @login_required
 def clean_session():
 	session["transaction_state"] = "INACTIVE"
-	session["client_name"] = ""
+	session["client_id"] = 0
 	session["payment_id"] = 0
 	session["comments"] = ""
 	session["items"] = []
@@ -236,7 +313,7 @@ def set_invoice_info():
 	elif (not check_float(transaction_dic["payment_amount"])):
 		flag = 3	# Payment is not a numerical value
 	else:
-		session["client_name"] = transaction_dic['client_name']
+		session["client_id"] = int(transaction_dic['client_id'])
 		session["payment_id"] = int(transaction_dic['payment_id'])
 		session["comments"] = transaction_dic['comments']
 		session["payment_amount"] = float(transaction_dic["payment_amount"])
@@ -267,20 +344,30 @@ def print_invoice():
 	date = month + " " + str(day) + ", " + str(year)
 	time = str(hour) + ":" + minute_formatted + " " + period
 
-	payment = db.session.query(Payment.payment_type).filter_by(id = session['payment_id']).all()
+	client = db.session.query(Client).filter_by(id = session["client_id"]).all()[0]
+	payment = db.session.query(Payment.type).filter_by(id = session['payment_id']).all()
 	formatted_account = "{:,.2f}".format(round(session["account"], 2))
 	formatted_payment = "{:,.2f}".format(round(session["payment_amount"], 2))
 	formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
 
-	invoice_number = 24 # Need to retrieve from DB
-	client_address = "87 Private St. Seattle, WA" # Need to retrieve from DB
-	client_email = "smith@gmail.com" # Need to retrieve from DB
-	client_telno = "990-302-1898" # Need to retrieve from DB
+	try:
+		invoice_number = db.session.query(func.max(Transaction.id)).all()[0][0]
+		if invoice_number:
+			invoice_number += + 1
+		else:
+			invoice_number = 1
+	except Exception as e:
+		print(e)
+	
+	client_name = client.name
+	client_address = client.address #"87 Private St. Seattle, WA" # Need to retrieve from DB
+	client_email = client.email #"smith@gmail.com" # Need to retrieve from DB
+	client_main_phone = client.main_phone #"990-302-1898" # Need to retrieve from DB
 
-	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = session["client_name"], \
+	rendered = render_template("invoice.html", invoice_number = invoice_number, client_name = client_name, \
 		payment = payment[0][0], items = session["items"], account = formatted_account, payment_amount = formatted_payment, \
 		balance = formatted_balance, date = date, time = time, client_address = client_address, client_email = client_email, \
-		client_telno = client_telno) 
+		client_main_phone = client_main_phone) 
 	pdf = pdfkit.from_string(rendered, False)
 	response = make_response(pdf)
 	response.headers['Content-Type'] = 'application/pdf'
@@ -301,25 +388,18 @@ def close_transaction():
 	if (not session["printed_invoice"]):
 		flag = 3
 	else:
-		#transaction_dic = json.loads(request.data)
-		#client_name = transaction_dic["client_name"]
-		#payment_id = transaction_dic['payment_id']
-		#comments = transaction_dic["comments"]
 		transaction = Transaction(
 			date = g_invoice_dt,
 			user_id = current_user.id,
-			#payment_id = payment_id,
 			payment_id = session["payment_id"],
-			client_name = session["client_name"],
-			#client_name = client_name,
+			client_id = session["client_id"],
 			account = session['account'],
 			payment = session["payment_amount"],
 			balance = session["balance"],
-			#comment = comments)
 			comment = session["comments"])
 		db.session.add(transaction)
 		db.session.commit()
-		## NEED DO ADD THE DETAILS OF THE TRANSACTION, BUT FOR THAT, WE NEED THE ID OF THE INVOICE
+		## NEED DO ADD THE DETAILS OF THE TRANSACTION
 			#service_id = db.session.query(Service.parent_id).filter_by(id=sid[0][0]).all()[0][0],
 			#subservice_id = sid[0][0],
 	return jsonify({"flag": flag})
@@ -340,13 +420,13 @@ def close_transaction():
 @views.route("/add-service", methods = ["POST"])
 @login_required
 def add_service():
-	service_type = request.form.get("service-type")
+	service_type = request.form.get("service_type")
 	if (service_type is None) or (len(service_type) < 3):
 		flash("The service name is too short. It must contain at least 3 characters.", category = "error")
-	elif (db.session.query(Service.id).filter(Service.service_type == service_type, Service.parent_id == None).count() > 0):
+	elif (db.session.query(Service.id).filter(Service.type == service_type, Service.id == None).count() > 0):
 		flash("Sorry, that service already exists.", category = "error")
 	else:
-		new_service = Service(service_type = service_type, service_active = 1)
+		new_service = Service(type = service_type, active = 1)
 		db.session.add(new_service)
 		db.session.commit()
 		flash("Service added!", category = "success")
@@ -362,20 +442,20 @@ def add_service():
 @views.route("/add-subservice", methods = ["POST"])
 @login_required
 def add_subservice():
-	parent_id = request.form.get("choose_service")
-	subservice = request.form.get("subservice_name")
+	service_parent_id = request.form.get("choose_service")
+	subservice_type = request.form.get("subservice_type")
 	flags = 0
-	if (parent_id == '0'):
+	if (service_parent_id == '0'):
 		flash("Oops, you didn't selected a service.", category = "error")
 		flags += 1
-	if (subservice is None) or (len(subservice) < 3):
+	if (subservice_type is None) or (len(subservice_type) < 3):
 		flash("The subservice name is too short. It must contain at least 3 characters.", category = "error")
 		flags += 1
-	elif (db.session.query(Service.id).filter(Service.service_type == subservice, Service.parent_id == parent_id).count() > 0):
+	elif (db.session.query(Service.id).filter(Service.type == subservice_type, Service.id == service_parent_id).count() > 0):
 		flash("Sorry, that subservice already exists under that category.", category = "error")
 		flags += 1
 	if (flags == 0):
-	 	new_subservice = Service(service_type = subservice, parent_id = parent_id, service_active = 1)
+	 	new_subservice = Service(type = subservice_type, service_parent_id = service_parent_id, active = 1)
 	 	db.session.add(new_subservice)
 	 	db.session.commit()
 	 	flash("Subservice added!", category = "success")
@@ -391,10 +471,10 @@ def add_subservice():
 @login_required
 def delete_service():
 	service_dic = json.loads(request.data)
-	serviceId = service_dic['serviceId']
-	service = Service.query.get(serviceId) # --> Returns a Service
+	service_id = service_dic['service_id']
+	service = Service.query.get(service_id)
 	if service:
-		Service.query.filter_by(parent_id = serviceId).delete()
+		Service.query.filter_by(id=service_id).delete()
 		db.session.delete(service)
 		db.session.commit()
 		flash("Service deleted!", category = "success")
@@ -410,8 +490,8 @@ def delete_service():
 @login_required
 def delete_subservice():
 	subservice_dic = json.loads(request.data)
-	subserviceId = subservice_dic['subserviceId']
-	subservice = Service.query.get(subserviceId) # --> Returns a Service
+	subservice_id = subservice_dic['subservice_id']
+	subservice = Service.query.get(subservice_id)
 	if subservice:
 		db.session.delete(subservice)
 		db.session.commit()
@@ -436,6 +516,97 @@ def delete_payment():
 	return jsonify({})
 
 
+###################################################################
+# Function:		delete_identification
+# Purpose:		Delete an identification type
+# Return vals: 	Empty JSON
+###################################################################
+@views.route("/delete-identification", methods = ["POST"])
+@login_required
+def delete_identification():
+	identification_dic = json.loads(request.data)
+	identification_id = identification_dic['identification_id']
+	identification = Identification.query.get(identification_id)
+	if identification:
+		db.session.delete(identification)
+		db.session.commit()
+	return jsonify({})
+
+
+###################################################################
+# Function:		add_client
+# Purpose:		Adds a client
+# Return vals: 	A call to the configure_service function to render
+#				the Service Config page
+###################################################################
+@views.route("/add-client", methods = ["POST"])
+@login_required
+def add_client():
+	flag = 0
+	client_dic = json.loads(request.data)
+	client_name = client_dic["client_name"]
+	client_address = client_dic["client_address"]
+	client_main_phone = client_dic["client_main_phone"]
+	client_secondary_phone = client_dic["client_secondary_phone"]
+	client_email = client_dic["client_email"]
+	client_identification_id = client_dic["client_identification_id"]
+	if (client_identification_id == '0' or not client_identification_id):
+		client_identification_id = db.session.query(func.min(Identification.id)).first()[0]
+	client_identification_number = client_dic["client_identification_number"]
+	try:
+		new_client = Client(name = client_name, address = client_address, main_phone = client_main_phone, \
+			secondary_phone = client_secondary_phone, identification_id = client_identification_id, \
+			identification_number = client_identification_number, email = client_email)
+		db.session.add(new_client)
+		db.session.commit()
+	except Exception as e:
+		flag = 1
+		print(e)
+	return jsonify({"flag": flag})
+
+
+###################################################################
+# Function:		delete_client
+# Purpose:		Deletes a client
+# Return vals: 	Empty JSON
+###################################################################
+@views.route("/delete-client", methods = ["POST"])
+@login_required
+def	delete_client():
+	client_dic = json.loads(request.data)
+	client_id = client_dic["client_id"]
+	client = Client.query.get(client_id)
+	if client:
+		db.session.delete(client)
+		db.session.commit()
+	return jsonify({})
+
+
+@views.route("/edit-client", methods = ["POST"])
+@login_required
+def	edit_client():
+	client_dic = json.loads(request.data)
+	client_id = client_dic["client_id"]
+	client_name = client_dic["client_name"]
+	client_main_phone = client_dic["client_main_phone"]
+	client_secondary_phone = client_dic["client_secondary_phone"]
+	client_email = client_dic["client_email"]
+	client_identification_type = client_dic["client_identification_type"]
+	client_identification_number = client_dic["client_identification_number"]
+	client_address = client_dic["client_address"]
+	identification = db.session.query(Identification).filter_by(type=client_identification_type).all()[0]
+	client = db.session.query(Client).filter_by(id=int(client_id)).all()[0]
+	if (client and id):
+		updated_client = Client.query.filter_by(id=client.id).first()
+		updated_client.name = client_name
+		updated_client.main_phone = client_main_phone
+		updated_client.secondary_phone = client_secondary_phone
+		updated_client.email = client_email
+		updated_client.identification_id = identification.id
+		updated_client.identification_number = client_identification_number
+		updated_client.address = client_address
+		db.session.commit()
+	return jsonify({})
 
 
 ###################################################################

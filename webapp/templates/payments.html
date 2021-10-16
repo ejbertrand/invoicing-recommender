@@ -8,8 +8,8 @@
 	<br/>
 	<h3 align="center">Payment Methods</h3>
 	<div class="form-group">
-		<label for="payment-type">Type</label>
-		<input type="payment-type" class="form-control" id="payment-type" name="payment-type" placeholder="Enter new payment method">
+		<label for="payment_type">Type</label>
+		<input type="text" class="form-control" id="payment_type" name="payment_type" placeholder="Enter new payment method">
 	</div>
 	<button type="submit" class="btn btn-warning">Add Payment Method</button>
 </form><br/>
@@ -17,10 +17,9 @@
 <!-- List of payment methods -->
 <ul class="list-group list-group-flush" id="notes">
 	{% for payment in payments %}
-	<li class="list-group-item">{{ payment.payment_type }}
+	<li class="list-group-item">{{ payment.type }}
 		<!-- Payment deletion -->
     <button type="button" class="close" data-toggle="modal" data-target="#confirm-delete-{{ payment.id }}">
-	<!-- <button type="button" class="close" onClick="deletePayment({{ payment.id }})"> -->
       <span aria-hidden="true">&times;</span>
     </button>
   </li>
@@ -36,7 +35,7 @@
 								<b>CAUTION!</b>
 	            </div>
 	            <div class="modal-body">
-								Are you sure you want to delete <b>{{ payment.payment_type }}</b> from payment methods?
+								Are you sure you want to delete <b>{{ payment.type }}</b> from payment methods?
 							</div>
 							<div class="modal-footer">
 									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -46,5 +45,5 @@
 			</div>
 	</div>
 	{% endfor %}
-
+<br/>
 {% endblock %}

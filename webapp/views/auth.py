@@ -17,11 +17,11 @@ def send_mail(email):
 def login():
 	if not current_user.is_authenticated:
 		if request.method == "POST":
-			email = request.form.get("email")
-			password = request.form.get("password")
-			user = User.query.filter_by(user_email = email).first()
+			user_email = request.form.get("user_email")
+			user_password = request.form.get("user_password")
+			user = User.query.filter_by(email = user_email).first()
 			if user:
-				if check_password_hash(user.password, password):
+				if check_password_hash(user.password, user_password):
 					flash("Logged in succesfully!", category = "sucess")
 					login_user(user, remember = True)
 					session["transaction_state"] = "INACTIVE"
@@ -47,23 +47,23 @@ def logout():
 def sign_up():
 	if not current_user.is_authenticated:
 		if request.method == "POST":
-			email = request.form.get("email")
-			name = request.form.get("name")
-			password1 = request.form.get("password1")
-			password2 = request.form.get("password2")
-			user = User.query.filter_by(user_email = email).first()
+			user_email = request.form.get("user_email")
+			user_name = request.form.get("user_name")
+			user_password1 = request.form.get("user_password1")
+			user_password2 = request.form.get("user_password2")
+			user = User.query.filter_by(email = user_email).first()
 			if user:
 				flash("Email already exists.", category = "error")
-			elif len(email) <= 3:
+			elif len(user_email) <= 3:
 				flash("Email must be greater than 3 characters.", category = "error")
-			elif len(name) < 2:
+			elif len(user_name) < 2:
 				flash("Name must be greater than 1 character.", category = "error")
-			elif password1 != password2:
+			elif user_password1 != user_password2:
 				flash("Passwords don't match.", category = "error")
-			elif len(password1) < 7:
+			elif len(user_password1) < 7:
 				flash("Password must be at least 7 characters.", category = "error")
 			else:
-				new_user = User(user_email = email, password = generate_password_hash(password1, method = "sha256"), user_name = name, user_active = 1)
+				new_user = User(email = user_email, password = generate_password_hash(user_password1, method = "sha256"), name = user_name, active = 1)
 				db.session.add(new_user)
 				db.session.commit()
 				login_user(new_user, remember = True)

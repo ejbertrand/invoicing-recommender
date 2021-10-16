@@ -27,10 +27,10 @@ function cleanForm()
 }
 
 /*******************************************************************/
-/* Function Name: 	printTable
+/* Function Name: 	printItemsTable
 /* Purpose: 		Prints the transaction table into the HTML object
 /*******************************************************************/
-function printTable(json)
+function printItemsTable(json)
 {
 	var items_tbody = document.getElementById("items_table").getElementsByTagName('tbody')[0];
 	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
@@ -63,11 +63,11 @@ function printTable(json)
 /******************************************************************************/
 function getSubServices()
 {
-  var serviceId = document.getElementById("input_service").value;
-  if (serviceId != "0")
+  var service_parent_id = document.getElementById("input_service").value;
+  if (service_parent_id != "0")
     fetch("/get-subservices",{
       method: "POST",
-      body: JSON.stringify({ serviceId: serviceId }),
+      body: JSON.stringify({ service_parent_id: service_parent_id }),
     })
     .then(response => response.json())
     .then(json => loadSubservices(json))
@@ -96,6 +96,7 @@ function loadSubservices(content)
       dropdown.add(option);
     }
 }
+
 
 
 
@@ -149,14 +150,14 @@ function cleanSession()
 /* Function Name: 	deleteItem
 /* Purpose: 		Deletes an item from the transaction table
 /*******************************************************************/
-function deleteItem(rowId)
+function deleteItem(row_id)
 {
 	fetch("/delete-item", {
 		method:	"POST",
-		body: JSON.stringify({rowId: rowId}),
+		body: JSON.stringify({row_id: row_id}),
 	})
 	.then(response => response.json())
-	.then(json => printTable(json))
+	.then(json => printItemsTable(json))
 	.catch(error => {
 		console.log("Error!");
 		console.error(error);
@@ -168,14 +169,14 @@ function deleteItem(rowId)
 /* Purpose: 		Adds an item into the transaction table
 /*******************************************************************/
 function addItem(){
-	var serviceId = document.getElementById("input_service").value;
-	var subserviceId = document.getElementById("input_subservice").value;
+	var service_id = document.getElementById("input_service").value;
+	var subservice_id = document.getElementById("input_subservice").value;
 	var total = document.getElementById("total").value;
-	var client_name = document.getElementById("client_name").value;
+	var client_id = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
-	if (serviceId == '0' || subserviceId == '0')
+	if (service_id == '0' || subservice_id == '0')
 		alert("Oops!\nPlease, choose a valid Service and Subservice combination.");
 	else if (total == "" || isNaN(total))
 		alert("Please, insert a numerical value for the Total.");
@@ -183,13 +184,13 @@ function addItem(){
 	{
 		fetch("/add-item", {
 			method: "POST",
-			body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId,
-				total: total, client_name: client_name, payment_id: payment_id,
+			body: JSON.stringify({service_id: service_id, subservice_id: subservice_id,
+				total: total, client_id: client_id, payment_id: payment_id,
 				comments: comments}),
 		})
 		.then(response => response.json())
 		.then(json => {
-			printTable(json);
+			printItemsTable(json);
 			let total = document.getElementById("total");
 			let servicebox = document.getElementById("input_service");
 
@@ -209,20 +210,20 @@ function addItem(){
 /* Purpose: 		Generate the invoice to be printed
 /*******************************************************************/
 function printInvoice(){
-	var client_name = document.getElementById("client_name").value;
+	var client_id = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 	var payment_amount = document.getElementById("payment_amount").value;
 
-	if (client_name == "")
-		alert("The client name is empty!");
+	if (client_id == "0")
+		alert("No client was chosen!");
 	else if (payment_id == "0")
 		alert("No payment method was selected!");
 	else
 	{
 		fetch("/set-invoice-info", {
 			method: "POST",
-			body: JSON.stringify({client_name: client_name, payment_id: payment_id, 
+			body: JSON.stringify({client_id: client_id, payment_id: payment_id, 
 				comments: comments, payment_amount : payment_amount}),
 		})
 		.then(response => response.json())
@@ -252,9 +253,9 @@ function printInvoice(){
 function closeTransaction(){
 	var client_name = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
-	var comments = document.getElementById("comments").value;
+	//var comments = document.getElementById("comments").value;
 
-	if (client_name == "")
+	if (client_name == "0")
 		alert("The client name is empty!");
 	else if (payment_id == "0")
 		alert("No payment method was selected!");
@@ -316,10 +317,10 @@ function cancelTransaction()
 /* Function Name: 	deleteSubservice
 /* Purpose: 		Deletes a subservice from the subservice list
 /*******************************************************************/
-function deleteSubservice(subserviceId) {
+function deleteSubservice(subservice_id) {
 	fetch("/delete-subservice", {
 	  method: "POST",
-	  body: JSON.stringify({ subserviceId: subserviceId }),
+	  body: JSON.stringify({ subservice_id: subservice_id }),
 	})
 	.then(response => {
 	  window.location.href = "/services-config";
@@ -330,14 +331,15 @@ function deleteSubservice(subserviceId) {
 	});
   }
 
+
 /***********************************************************************************/
 /* Function Name: 	deleteService
 /* Purpose: 		Deletes a service from the services list
 /***********************************************************************************/
-function deleteService(serviceId) {
+function deleteService(service_id) {
 	fetch("/delete-service", {
 	  method: "POST",
-	  body: JSON.stringify({ serviceId: serviceId }),
+	  body: JSON.stringify({ service_id: service_id }),
 	})
 	.then(response => {
 	  window.location.href = "/services-config";
@@ -348,10 +350,11 @@ function deleteService(serviceId) {
 	});
   }
   
-  /***********************************************************************************/
-  /* Function Name: deletePayment
-  /* Purpose: 		Deletes a payment from the payment list
-  /***********************************************************************************/
+
+/***********************************************************************************/
+/* Function Name: deletePayment
+/* Purpose: 		Deletes a payment from the payment list
+/***********************************************************************************/
   function deletePayment(payment_id) {
 	fetch("/delete-payment-method", {
 	  method: "POST",
@@ -364,4 +367,261 @@ function deleteService(serviceId) {
 	  console.log('Error!');
 	  console.error(error);
 	});
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: deleteIdentification
+  /* Purpose: 		Deletes an ID type from the list
+  /***********************************************************************************/
+  function deleteIdentification(identification_id) {
+	fetch("/delete-identification", {
+	  method: "POST",
+	  body: JSON.stringify({ identification_id: identification_id }),
+	})
+	.then(response => {
+	  window.location.href = "/identification-config";
+	})
+	.catch(error => {
+	  console.log('Error!');
+	  console.error(error);
+	});
+  }
+
+
+
+
+/*******************************************************************/
+/********************** CLIENT CONFIGURATION ***********************/
+/*******************************************************************/
+
+	/*******************************************************************/
+	/* Function Name: 	addClient
+	/* Purpose: 		Adds an item into the transaction table
+	/*******************************************************************/
+	function addClient(){
+		var client_name = document.getElementById("client_name").value;
+		var client_address = document.getElementById("client_address").value;
+		var client_main_phone = document.getElementById("client_main_phone").value;
+		var client_secondary_phone = document.getElementById("client_secondary_phone").value;
+		var client_email = document.getElementById("client_email").value;
+		var client_identification_id = document.getElementById("choose_identification_id").value;
+		var client_identification_number = document.getElementById("client_identification_number").value;
+
+		if (client_name == "")
+			alert("The client name is empty!");
+		else if (client_address == "")
+			alert("The address is empty!");
+		else if (client_main_phone == "")
+			alert("The telephone number is empty!");
+		else
+		{
+			fetch("/add-client", {
+				method: "POST",
+				body: JSON.stringify({client_name: client_name, client_address: client_address,
+				client_main_phone: client_main_phone, client_secondary_phone: client_secondary_phone,
+				client_email: client_email, client_identification_id: client_identification_id, 
+				client_identification_number: client_identification_number}),
+			})
+			.then(response => response.json())
+			.then(json => {
+				if(json["flag"] == 0)
+				{
+					alert("The client was added!");
+					window.location.href = "/clients";
+				}
+				else
+					alert("Sorry, an error ocurred!");
+			})
+			.catch(error => {
+				console.log('Error!');
+				console.error(error);
+			});
+		}
+	}
+
+
+
+  /***********************************************************************************/
+  /* Function Name: deleteClient
+  /* Purpose: 		Deletes a client from the database
+  /***********************************************************************************/
+  function deleteClient(client_id) {
+	fetch("/delete-client", {
+	  method: "POST",
+	  body: JSON.stringify({ client_id: client_id }),
+	})
+	.then(response => {
+	  window.location.href = "/clients";
+	})
+	.catch(error => {
+	  console.log('Error!');
+	  console.error(error);
+	});
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: editClient
+  /* Purpose: 		Edit client information
+  /***********************************************************************************/
+  function editClient(client_id) {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email',
+	 				'sel-client-idtyp', 'row-client-idno', 'row-client-address'];
+	var new_html = "";
+	var chosen_id_type = "";
+
+	disableClientActions();	
+	// Creating the input fields on the client's row
+	for (let column_index = 0; column_index <= 6; column_index++)
+	{
+		if (column_index == 4)
+		{
+			new_html = "<select id='" + columns[column_index] + "-" + client_id + "' class='form-control'></select>";
+			chosen_id_type = row[column_index].innerHTML;
+		}
+		else
+			new_html = "<input type='text' id='" + columns[column_index] + "-" + client_id + "' value ='" + 
+						row[column_index].innerHTML + "' size='10'>";
+		row[column_index].innerHTML = new_html;
+	}
+	// Setting event listener (Enter key) to the input fields of the row
+	for (let column_index = 0; column_index < columns.length; column_index++)
+	{
+		if (column_index == 4)
+			continue;
+		let node = document.getElementById(columns[column_index] + "-" + client_id);
+		node.addEventListener('keydown', function onEvent(event)
+		{
+			if (event.key == "Enter")
+				saveClientChanges(columns, client_id);
+		});
+	}
+	fetch("/get-id-types", 
+	{
+		method: "POST",
+		body: JSON.stringify({chosen_id_type: chosen_id_type}),
+	})
+	.then(response => response.json())
+	.then(json => {
+		loadIDTypes(columns[4] + "-" + client_id, json);
+	})
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	  });
+  }
+
+
+ /***********************************************************************************/
+  /* Function Name: disableClientActions
+  /* Purpose: 		Disable New Client form and action buttons
+  /***********************************************************************************/
+  function disableClientActions()
+  {
+	var table = document.getElementById("clients_table");
+	var form = document.getElementById("client-form");
+	var elements = form.elements;
+
+	for (let i = 1; i < table.rows.length; i++)
+	{
+		document.getElementById("btn-editclient-" + i).disabled = true;
+		document.getElementById("btn-delclient-" + i).disabled = true;
+	}
+	for (var i = 0, len = elements.length; i < len; ++i) 
+    	elements[i].readOnly = true;
+	document.getElementById("btn-add-client").disabled = true;
+	document.getElementById("choose_identification_id").disabled = true;
+  }
+
+
+  /***********************************************************************************/
+  /* Function Name: saveClientChanges
+  /* Purpose: 		Save the changes made on the client row
+  /***********************************************************************************/
+  function saveClientChanges(columns, client_id)
+  {
+	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
+	var client_name = document.getElementById(columns[0] + "-" + client_id).value;
+	var client_main_phone = document.getElementById(columns[1] + "-" + client_id).value;
+	var client_secondary_phone = document.getElementById(columns[2] + "-" + client_id).value;
+	var client_email = document.getElementById(columns[3] + "-" + client_id).value;
+	var select_idtype = document.getElementById(columns[4] + "-" + client_id);
+	var client_identification_type = select_idtype.options[select_idtype.selectedIndex].text;
+	var client_identification_number = document.getElementById(columns[5] + "-" + client_id).value;
+	var client_address = document.getElementById(columns[6] + "-" + client_id).value;
+
+	if (client_name == "")
+		alert("Name cannot be left empty!");
+	else if (client_main_phone == "")
+		alert("Main phone cannot be left empty!");
+	else if (client_address == "")
+		alert("Address cannot be left empty!");
+	else
+	{
+		fetch("/edit-client", 
+		 {
+			method: "POST",
+			body: JSON.stringify({client_id: client_id, client_name: client_name,
+				client_main_phone: client_main_phone, client_secondary_phone: client_secondary_phone,
+				client_email: client_email, client_identification_type: client_identification_type,
+				client_identification_number: client_identification_number, client_address: client_address})
+		 })
+		 .then(response => {
+			const client_info = [client_name, client_main_phone, client_secondary_phone, client_email,
+				client_identification_type, client_identification_number, client_address];
+			var client_modal = document.getElementById("client-" + client_id + "-modal");
+			for (let column_index = 0; column_index <= 6; column_index++)
+				row[column_index].innerHTML = client_info[column_index];
+			client_modal.innerHTML = "Are you sure you want to delete <b>" + client_name + "</b> as a client?";
+			alert("Client updated succesfully!");
+			enableClientActions();
+		 })
+		 .catch(error => {
+			 console.log('Error!');
+			 console.error(error);
+		 });
+	}
+  }
+
+
+/***********************************************************************************/
+/* Function Name: 	loadIDTypes
+/* Purpose: 		Loads the option HTML element with the corresponding ID types
+/***********************************************************************************/
+function loadIDTypes(element_id, content)
+{
+	var dropdown = document.getElementById(element_id);
+	var chosen_id = content[content.length - 1];
+
+    for(let i = 0; i < content.length - 1; i++){
+      option = document.createElement('option');
+	  option.value = content[i][0];
+      option.text = content[i][1];
+      dropdown.add(option);
+    }
+	dropdown.value = chosen_id;
+}
+
+
+  /***********************************************************************************/
+  /* Function Name: enableClientActions
+  /* Purpose: 		Enable New Client form and action buttons
+  /***********************************************************************************/
+  function enableClientActions()
+  {
+	var table = document.getElementById("clients_table");
+	var form = document.getElementById("client-form");
+	var elements = form.elements;
+
+	for (let i = 1; i < table.rows.length; i++)
+	{
+		document.getElementById("btn-editclient-" + i).disabled = false;
+		document.getElementById("btn-delclient-" + i).disabled = false;
+	}
+	for (var i = 0, len = elements.length; i < len; ++i) 
+    	elements[i].readOnly = false;
+	document.getElementById("btn-add-client").disabled = false;
+	document.getElementById("choose_identification_id").disabled = false;
   }

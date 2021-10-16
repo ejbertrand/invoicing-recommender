@@ -12,7 +12,7 @@
 		<form method="POST" action="/add-service">
 			<div class="form-group">
 				<br><h6>Adding a new service?</h6>
-				<br><input type="service-type" class="form-control" id="service-type" name="service-type" placeholder="Enter new service name">
+				<br><input type="text" class="form-control" id="service_type" name="service_type" placeholder="Enter new service name">
 			</div>
 			<br><button type="submit" class="btn btn-warning">Add Service</button>
 		</form>
@@ -30,7 +30,7 @@
 					{% endfor %}
 				</select>
 				<br/>
-				<input type="subservice_name" class="form-control" id="subservice_name" name="subservice_name" placeholder="Enter new subservice name">
+				<input type="text" class="form-control" id="subservice_type" name="subservice_type" placeholder="Enter new subservice name">
 			</div>
 			<button type="submit" class="btn btn-warning">Add Subservice</button>
 		</form>
@@ -79,7 +79,7 @@
 	              <b>CAUTION!</b>
 	            </div>
 	            <div class="modal-body">
-								Are you sure you want to delete <b>{{srv_dict[srv_id]}}</b> and all its associated subservices?
+					Are you sure you want to delete <b>{{srv_dict[srv_id]}}</b> and all its associated subservices?
 	            </div>
 	            <div class="modal-footer">
 	                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -92,22 +92,22 @@
 	<!-- Sub-services modals -->
 	{% for subsrv_id in subsrv_dict[srv_id] %}
 	<div class="modal fade" id="confirm-delete-{{subsrv_id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-			<div class="modal-dialog">
-					<div class="modal-content">
-							<div class="modal-header">
-								<b>CAUTION!</b>
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<b>CAUTION!</b>
 	            </div>
 	            <div class="modal-body">
-								Are you sure you want to delete <b>{{subsrv_dict[srv_id][subsrv_id]}}</b> from {{srv_dict[srv_id]}}?
-							</div>
-							<div class="modal-footer">
-									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-									<a class="btn btn-danger btn-ok" onClick="deleteSubservice({{ subsrv_id }})">Delete</a>
-							</div>
-					</div>
+					Are you sure you want to delete <b>{{subsrv_dict[srv_id][subsrv_id]}}</b> from {{srv_dict[srv_id]}}?
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<a class="btn btn-danger btn-ok" onClick="deleteSubservice({{ subsrv_id }})">Delete</a>
+				</div>
 			</div>
+		</div>
 	</div>
 	{% endfor %}
 {% endfor %}
-
+<br/>
 {% endblock %}

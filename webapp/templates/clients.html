@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+
+<br/><h3 align="center">Clients</h3>
+
+<!-- Form for adding clients -->
+<div class="container p-3 my-3 border">
+	<form method="POST" action="/add-client" id="client-form">
+
+		<h6>Adding a new client?</h6>
+		<small>(*) Mandatory fields</small>
+		<div class="row">
+			<div class="col-md-6">
+				<label for="client_name">Client name *</label>
+				<input class="form-control" id="client_name" name="client_name" placeholder="Enter the complete name "></input><br/>
+			</div>
+			<div class="col-md-6">
+				<label for="client_address">Address *</label>
+				<input class="form-control" id="client_address" name="client_address" placeholder="Street Number, City, and ZIP Code"></input><br/>	
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-3">
+				<label for="client_main_phone">Main phone *</label>
+				<input class="form-control" id="client_main_phone" name="client_main_phone" placeholder="(###) ### - ####"></input><br/>
+			</div>
+			<div class="col-md-3">
+				<label for="client_secondary_phone">Secondary phone</label>
+				<input class="form-control" id="client_secondary_phone" name="client_secondary_phone" placeholder="(###) ### - ####"></input><br/>				
+			</div>
+			<div class="col-md-6">
+				<label for="client_email">E-mail address:</label>
+				<input type="email" class="form-control" id="client_email" name="client_email" placeholder="E-mail address"></input><br/>				
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-4 offset-md-2">
+				<label for="choose_identification_id">Identification type</label>
+				<select name="choose_identification_id" id="choose_identification_id" class="form-control">
+					<option selected value="0">Choose...</option>
+					{% for identification in identifications %}
+					<option value="{{ identification.id }}">{{ identification.type }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="col-md-4">
+				<label for="client_identification_number">Identification No.</label>
+				<input class="form-control" id="client_identification_number" name="client_identification_number" placeholder="ID Number"></input>
+			</div>
+		</div>
+		<br/>
+		<button type="button" class="btn btn-warning" id="btn-add-client" onClick="addClient()">Add Client</button>
+	</form>
+</div><br/>
+
+<!-- Table showing the clients -->
+<table class="table table-hover" id="clients_table">
+	<thead class="thead-light text-center">
+	  <tr>
+		  <th scope="col">Name</th>
+		  <th scope="col">Main Phone</th>
+		  <th scope="col">Secondary Phone</th>
+		  <th scope="col">E-mail</th>
+		  <th scope="col">ID Type</th>
+		  <th scope="col">ID Number</th>
+		  <th scope="col">Address</th>
+		  <th id="actions" colspan=2>Actions</th>
+	  </tr>
+	</thead>
+	<tbody class="text-center">
+		  {% for client in clients %}
+	  <tr id="client-{{client[0]}}">
+		<td>{{client[1]}}</td>	<!-- Name -->
+		<td>{{client[2]}}</td>	<!-- Phone -->
+		<td>{{client[3]}}</td>	<!-- Secondary Phone -->
+		<td>{{client[4]}}</td>	<!-- E-mail -->
+		<td>{{client[5]}}</td>	<!-- ID Type -->
+		<td>{{client[6]}}</td>	<!-- ID Number -->
+		<td>{{client[7]}}</td>	<!-- Address -->
+		<td data-toggle="tooltip" title="Edit">
+			<input id="btn-editclient-{{loop.index}}" type="image"
+				src="{{url_for('static', filename = 'pencil20px.png')}}"
+				onClick="editClient({{ client[0] }})">
+		</td>
+		<td data-toggle="tooltip" title="Delete">
+			  <input id="btn-delclient-{{loop.index}}" type="image"
+			  src="{{url_for('static', filename = 'basket20px.png')}}" class="close"
+			  data-toggle="modal" data-target="#confirm-delete-{{ client[0] }}"/>
+		</td>
+	  </tr>
+		  {% endfor %}
+	</tbody>
+  </table>
+
+	<!-- Client modals -->
+	{% for client in clients %}
+	<div class="modal fade" id="confirm-delete-{{ client[0] }}" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<b>CAUTION!</b>
+				</div>
+				<div class="modal-body" id="client-{{ client[0] }}-modal">
+					Are you sure you want to delete <b>{{ client[1] }}</b> as a client?
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<a class="btn btn-danger btn-ok" onClick="deleteClient({{ client[0] }})">Delete</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+
+  <br/>
+
+{% endblock %}
