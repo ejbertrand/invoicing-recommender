@@ -4,41 +4,41 @@ from sqlalchemy.sql import func
 
 class User (db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
-	user_email = db.Column(db.String(100), unique = True)
+	email = db.Column(db.String(100), unique = True)
 	password = db.Column(db.String(150))
-	user_name = db.Column(db.String(100))
-	user_active = db.Column(db.Integer)
-	user_transactions = db.relationship('Transaction')
+	name = db.Column(db.String(100))
+	active = db.Column(db.Integer)
+	user_transaction = db.relationship('Transaction')
 
 class Payment (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	payment_type = db.Column(db.String(100), unique = True)
-	payment_active = db.Column(db.Integer)
-	payment_transactions = db.relationship('Transaction')
+	type = db.Column(db.String(100), unique = True)
+	active = db.Column(db.Integer)
+	payment_transaction = db.relationship('Transaction')
 
 class Identification (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	id_type = db.Column(db.String(100), unique = True)
-	id_active = db.Column(db.Integer)
-	id_clients = db.relationship('Client')
+	type = db.Column(db.String(100), unique = True)
+	active = db.Column(db.Integer)
+	identification_client = db.relationship('Client')
 
 class Client (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	client_name = db.Column(db.String(150), nullable = False)
+	name = db.Column(db.String(150), nullable = False)
 	address = db.Column(db.String(200), nullable = False)
-	tel_number = db.Column(db.String(100), nullable = False)
-	alt_number = db.Column(db.String(100))
-	client_email = db.Column(db.String(100))
-	id_id = db.Column(db.Integer, db.ForeignKey('identification.id'))
-	id_number = db.Column(db.String(50))
-	client_transactions = db.relationship('Transaction')
+	main_phone = db.Column(db.String(100), nullable = False)
+	secondary_phone = db.Column(db.String(100))
+	email = db.Column(db.String(100))
+	identification_id = db.Column(db.Integer, db.ForeignKey('identification.id'))
+	identification_number = db.Column(db.String(50))
+	client_transaction = db.relationship('Transaction')
 
 class Service (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	service_type = db.Column(db.String(100))
-	parent_id = db.Column(db.Integer, db.ForeignKey('service.id'))
-	service_active = db.Column(db.Integer)
-	service_transactions = db.relationship('Transaction_Details')
+	type = db.Column(db.String(100))
+	service_parent_id = db.Column(db.Integer, db.ForeignKey('service.id'))
+	active = db.Column(db.Integer)
+	service_transaction = db.relationship('Transaction_Details')
 	service_parent = db.relationship("Service", remote_side=[id])
 
 class Transaction (db.Model):

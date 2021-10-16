@@ -6,7 +6,6 @@
 	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()" hidden>Cancel Transaction</button>
 	<br/>
 	<form method="POST" id="transaction_form" hidden>
-
 {% else %}
 	<button type="button" class="btn btn-warning btn-block" id="new_button" onClick="openTransaction()" hidden>New Transaction</button>
 	<button type="button" class="btn btn-danger btn-block" id="cancel_button" onClick="cancelTransaction()">Cancel Transaction</button>
@@ -24,22 +23,22 @@
 					{% if client_id == 0 %}
 							<option selected value="0">Choose...</option>
 							{% for client in clients %}
-							<option value="{{client.id}}">{{client.client_name}}</option>
+							<option value="{{client.id}}">{{client.name}}</option>
 							{% endfor %}
 						{% else %}
 							<option value="0">Choose...</option>
 							{% for client in clients %}
 								{% if client_id == client.id %}
-								<option selected value="{{client.id}}">{{client.client_name}}</option>
+								<option selected value="{{client.id}}">{{client.name}}</option>
 								{% else %}
-								<option value="{{client.id}}">{{client.client_name}}</option>
+								<option value="{{client.id}}">{{client.name}}</option>
 								{% endif %}
 							{% endfor %}
 						{% endif %}
 				{% else %}
 					<option selected value="0">Choose...</option>
 					{% for client in clients %}
-					<option value="{{client.id}}">{{client.client_name}}</option>
+					<option value="{{client.id}}">{{client.name}}</option>
 					{% endfor %}
 				{% endif %}
 				</select>
@@ -55,22 +54,22 @@
 						{% if payment_id == 0 %}
 							<option selected value="0">Choose...</option>
 							{% for payment in payments %}
-							<option value="{{payment.id}}">{{payment.payment_type}}</option>
+							<option value="{{payment.id}}">{{payment.type}}</option>
 							{% endfor %}
 						{% else %}
 							<option value="0">Choose...</option>
 							{% for payment in payments %}
 								{% if payment_id == payment.id %}
-								<option selected value="{{payment.id}}">{{payment.payment_type}}</option>
+								<option selected value="{{payment.id}}">{{payment.type}}</option>
 								{% else %}
-								<option value="{{payment.id}}">{{payment.payment_type}}</option>
+								<option value="{{payment.id}}">{{payment.type}}</option>
 								{% endif %}
 							{% endfor %}
 						{% endif %}
 					{% else %}
 						<option selected value="0">Choose...</option>
 						{% for payment in payments %}
-						<option value="{{payment.id}}">{{payment.payment_type}}</option>
+						<option value="{{payment.id}}">{{payment.type}}</option>
 						{% endfor %}
 					{% endif %}
 				</select><br/>
@@ -93,7 +92,7 @@
 				<select name="input_service" id="input_service" class="form-control" onchange="getSubServices();">
 					<option selected value="0">Choose...</option>
 					{% for service in services %}
-					<option value="{{service.id}}">{{service.service_type}}</option>
+					<option value="{{service.id}}">{{service.type}}</option>
 					{% endfor %}
 				</select>
 				<br/>

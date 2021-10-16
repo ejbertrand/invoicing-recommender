@@ -9,8 +9,8 @@
 	<br/>
 	<h3 align="center">Identification Types</h3>
 	<div class="form-group">
-		<label for="identification-type">Identification</label>
-		<input type="identification-type" class="form-control" id="identification-type" name="identification-type" placeholder="Enter new identification type">
+		<label for="identification_type">Identification</label>
+		<input type="text" class="form-control" id="identification_type" name="identification_type" placeholder="Enter new identification type">
 	</div>
 	<button type="submit" class="btn btn-warning">Add Identification</button>
 </form><br/>
@@ -18,7 +18,7 @@
 <!-- List of Identification types -->
 <ul class="list-group list-group-flush" id="notes">
 	{% for identification in identifications %}
-	<li class="list-group-item">{{ identification.id_type }}
+	<li class="list-group-item">{{ identification.type }}
 		<!-- Identification deletion -->
     <button type="button" class="close" data-toggle="modal" data-target="#confirm-delete-{{ identification.id }}">
       <span aria-hidden="true">&times;</span>
@@ -36,7 +36,7 @@
 					<b>CAUTION!</b>
 				</div>
 				<div class="modal-body">
-					Are you sure you want to delete <b>{{ identification.id_type }}</b> as identification type?
+					Are you sure you want to delete <b>{{ identification.type }}</b> as identification type?
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

@@ -63,11 +63,11 @@ function printItemsTable(json)
 /******************************************************************************/
 function getSubServices()
 {
-  var serviceId = document.getElementById("input_service").value;
-  if (serviceId != "0")
+  var service_parent_id = document.getElementById("input_service").value;
+  if (service_parent_id != "0")
     fetch("/get-subservices",{
       method: "POST",
-      body: JSON.stringify({ serviceId: serviceId }),
+      body: JSON.stringify({ service_parent_id: service_parent_id }),
     })
     .then(response => response.json())
     .then(json => loadSubservices(json))
@@ -150,11 +150,11 @@ function cleanSession()
 /* Function Name: 	deleteItem
 /* Purpose: 		Deletes an item from the transaction table
 /*******************************************************************/
-function deleteItem(rowId)
+function deleteItem(row_id)
 {
 	fetch("/delete-item", {
 		method:	"POST",
-		body: JSON.stringify({rowId: rowId}),
+		body: JSON.stringify({row_id: row_id}),
 	})
 	.then(response => response.json())
 	.then(json => printItemsTable(json))
@@ -169,14 +169,14 @@ function deleteItem(rowId)
 /* Purpose: 		Adds an item into the transaction table
 /*******************************************************************/
 function addItem(){
-	var serviceId = document.getElementById("input_service").value;
-	var subserviceId = document.getElementById("input_subservice").value;
+	var service_id = document.getElementById("input_service").value;
+	var subservice_id = document.getElementById("input_subservice").value;
 	var total = document.getElementById("total").value;
 	var client_id = document.getElementById("client_name").value;
 	var payment_id = document.getElementById("input_payment").value;
 	var comments = document.getElementById("comments").value;
 
-	if (serviceId == '0' || subserviceId == '0')
+	if (service_id == '0' || subservice_id == '0')
 		alert("Oops!\nPlease, choose a valid Service and Subservice combination.");
 	else if (total == "" || isNaN(total))
 		alert("Please, insert a numerical value for the Total.");
@@ -184,7 +184,7 @@ function addItem(){
 	{
 		fetch("/add-item", {
 			method: "POST",
-			body: JSON.stringify({serviceId: serviceId, subserviceId: subserviceId,
+			body: JSON.stringify({service_id: service_id, subservice_id: subservice_id,
 				total: total, client_id: client_id, payment_id: payment_id,
 				comments: comments}),
 		})
@@ -255,7 +255,7 @@ function closeTransaction(){
 	var payment_id = document.getElementById("input_payment").value;
 	//var comments = document.getElementById("comments").value;
 
-	if (client_name == "")
+	if (client_name == "0")
 		alert("The client name is empty!");
 	else if (payment_id == "0")
 		alert("No payment method was selected!");
@@ -317,10 +317,10 @@ function cancelTransaction()
 /* Function Name: 	deleteSubservice
 /* Purpose: 		Deletes a subservice from the subservice list
 /*******************************************************************/
-function deleteSubservice(subserviceId) {
+function deleteSubservice(subservice_id) {
 	fetch("/delete-subservice", {
 	  method: "POST",
-	  body: JSON.stringify({ subserviceId: subserviceId }),
+	  body: JSON.stringify({ subservice_id: subservice_id }),
 	})
 	.then(response => {
 	  window.location.href = "/services-config";
@@ -336,10 +336,10 @@ function deleteSubservice(subserviceId) {
 /* Function Name: 	deleteService
 /* Purpose: 		Deletes a service from the services list
 /***********************************************************************************/
-function deleteService(serviceId) {
+function deleteService(service_id) {
 	fetch("/delete-service", {
 	  method: "POST",
-	  body: JSON.stringify({ serviceId: serviceId }),
+	  body: JSON.stringify({ service_id: service_id }),
 	})
 	.then(response => {
 	  window.location.href = "/services-config";
@@ -402,25 +402,26 @@ function deleteService(serviceId) {
 	function addClient(){
 		var client_name = document.getElementById("client_name").value;
 		var client_address = document.getElementById("client_address").value;
-		var client_tel = document.getElementById("client_tel").value;
-		var client_stel = document.getElementById("client_stel").value;
+		var client_main_phone = document.getElementById("client_main_phone").value;
+		var client_secondary_phone = document.getElementById("client_secondary_phone").value;
 		var client_email = document.getElementById("client_email").value;
-		var id_id = document.getElementById("choose_id").value;
-		var client_idno = document.getElementById("client_idno").value;
+		var client_identification_id = document.getElementById("choose_identification_id").value;
+		var client_identification_number = document.getElementById("client_identification_number").value;
 
 		if (client_name == "")
 			alert("The client name is empty!");
 		else if (client_address == "")
 			alert("The address is empty!");
-		else if (client_tel == "")
+		else if (client_main_phone == "")
 			alert("The telephone number is empty!");
 		else
 		{
 			fetch("/add-client", {
 				method: "POST",
 				body: JSON.stringify({client_name: client_name, client_address: client_address,
-				client_tel: client_tel, client_stel: client_stel, client_email: client_email,
-				id_id: id_id, client_idno: client_idno}),
+				client_main_phone: client_main_phone, client_secondary_phone: client_secondary_phone,
+				client_email: client_email, client_identification_id: client_identification_id, 
+				client_identification_number: client_identification_number}),
 			})
 			.then(response => response.json())
 			.then(json => {
@@ -468,8 +469,8 @@ function deleteService(serviceId) {
 	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
 	const columns = ['row-client-name', 'row-client-tel', 'row-client-stel', 'row-client-email',
 	 				'sel-client-idtyp', 'row-client-idno', 'row-client-address'];
-	var newHTML = "";
-	var chosenIdType = "";
+	var new_html = "";
+	var chosen_id_type = "";
 
 	disableClientActions();	
 	// Creating the input fields on the client's row
@@ -477,13 +478,13 @@ function deleteService(serviceId) {
 	{
 		if (column_index == 4)
 		{
-			newHTML = "<select id='" + columns[column_index] + "-" + client_id + "' class='form-control'></select>";
-			chosenIdType = row[column_index].innerHTML;
+			new_html = "<select id='" + columns[column_index] + "-" + client_id + "' class='form-control'></select>";
+			chosen_id_type = row[column_index].innerHTML;
 		}
 		else
-			newHTML = "<input type='text' id='" + columns[column_index] + "-" + client_id + "' value ='" + 
+			new_html = "<input type='text' id='" + columns[column_index] + "-" + client_id + "' value ='" + 
 						row[column_index].innerHTML + "' size='10'>";
-		row[column_index].innerHTML = newHTML;
+		row[column_index].innerHTML = new_html;
 	}
 	// Setting event listener (Enter key) to the input fields of the row
 	for (let column_index = 0; column_index < columns.length; column_index++)
@@ -500,7 +501,7 @@ function deleteService(serviceId) {
 	fetch("/get-id-types", 
 	{
 		method: "POST",
-		body: JSON.stringify({chosenIdType: chosenIdType}),
+		body: JSON.stringify({chosen_id_type: chosen_id_type}),
 	})
 	.then(response => response.json())
 	.then(json => {
@@ -531,7 +532,7 @@ function deleteService(serviceId) {
 	for (var i = 0, len = elements.length; i < len; ++i) 
     	elements[i].readOnly = true;
 	document.getElementById("btn-add-client").disabled = true;
-	document.getElementById("choose_id").disabled = true;
+	document.getElementById("choose_identification_id").disabled = true;
   }
 
 
@@ -543,17 +544,17 @@ function deleteService(serviceId) {
   {
 	const row = document.getElementById("client-" + client_id).getElementsByTagName('td'); 
 	var client_name = document.getElementById(columns[0] + "-" + client_id).value;
-	var client_tel = document.getElementById(columns[1] + "-" + client_id).value;
-	var client_stel = document.getElementById(columns[2] + "-" + client_id).value;
+	var client_main_phone = document.getElementById(columns[1] + "-" + client_id).value;
+	var client_secondary_phone = document.getElementById(columns[2] + "-" + client_id).value;
 	var client_email = document.getElementById(columns[3] + "-" + client_id).value;
-	var idtype_select = document.getElementById(columns[4] + "-" + client_id);
-	var client_idtype = idtype_select.options[idtype_select.selectedIndex].text;
-	var client_idno = document.getElementById(columns[5] + "-" + client_id).value;
+	var select_idtype = document.getElementById(columns[4] + "-" + client_id);
+	var client_identification_type = select_idtype.options[select_idtype.selectedIndex].text;
+	var client_identification_number = document.getElementById(columns[5] + "-" + client_id).value;
 	var client_address = document.getElementById(columns[6] + "-" + client_id).value;
 
 	if (client_name == "")
 		alert("Name cannot be left empty!");
-	else if (client_tel == "")
+	else if (client_main_phone == "")
 		alert("Main phone cannot be left empty!");
 	else if (client_address == "")
 		alert("Address cannot be left empty!");
@@ -563,12 +564,13 @@ function deleteService(serviceId) {
 		 {
 			method: "POST",
 			body: JSON.stringify({client_id: client_id, client_name: client_name,
-				client_tel: client_tel, client_stel: client_stel, client_email: client_email,
-				client_idtype: client_idtype, client_idno: client_idno, client_address: client_address})
+				client_main_phone: client_main_phone, client_secondary_phone: client_secondary_phone,
+				client_email: client_email, client_identification_type: client_identification_type,
+				client_identification_number: client_identification_number, client_address: client_address})
 		 })
 		 .then(response => {
-			const client_info = [client_name, client_tel, client_stel, client_email,
-				client_idtype, client_idno, client_address];
+			const client_info = [client_name, client_main_phone, client_secondary_phone, client_email,
+				client_identification_type, client_identification_number, client_address];
 			var client_modal = document.getElementById("client-" + client_id + "-modal");
 			for (let column_index = 0; column_index <= 6; column_index++)
 				row[column_index].innerHTML = client_info[column_index];
@@ -588,10 +590,10 @@ function deleteService(serviceId) {
 /* Function Name: 	loadIDTypes
 /* Purpose: 		Loads the option HTML element with the corresponding ID types
 /***********************************************************************************/
-function loadIDTypes(elementId, content)
+function loadIDTypes(element_id, content)
 {
-	var dropdown = document.getElementById(elementId);
-	var chosenId = content[content.length - 1];
+	var dropdown = document.getElementById(element_id);
+	var chosen_id = content[content.length - 1];
 
     for(let i = 0; i < content.length - 1; i++){
       option = document.createElement('option');
@@ -599,7 +601,7 @@ function loadIDTypes(elementId, content)
       option.text = content[i][1];
       dropdown.add(option);
     }
-	dropdown.value = chosenId;
+	dropdown.value = chosen_id;
 }
 
 
@@ -621,5 +623,5 @@ function loadIDTypes(elementId, content)
 	for (var i = 0, len = elements.length; i < len; ++i) 
     	elements[i].readOnly = false;
 	document.getElementById("btn-add-client").disabled = false;
-	document.getElementById("choose_id").disabled = false;
+	document.getElementById("choose_identification_id").disabled = false;
   }

@@ -22,32 +22,32 @@
 
 		<div class="row">
 			<div class="col-md-3">
-				<label for="client_tel">Main phone *</label>
-				<input class="form-control" id="client_tel" name="client_tel" placeholder="(###) ### - ####"></input><br/>
+				<label for="client_main_phone">Main phone *</label>
+				<input class="form-control" id="client_main_phone" name="client_main_phone" placeholder="(###) ### - ####"></input><br/>
 			</div>
 			<div class="col-md-3">
-				<label for="client_stel">Secondary phone</label>
-				<input class="form-control" id="client_stel" name="client_stel" placeholder="(###) ### - ####"></input><br/>				
+				<label for="client_secondary_phone">Secondary phone</label>
+				<input class="form-control" id="client_secondary_phone" name="client_secondary_phone" placeholder="(###) ### - ####"></input><br/>				
 			</div>
 			<div class="col-md-6">
 				<label for="client_email">E-mail address:</label>
-				<input class="form-control" id="client_email" name="client_email" placeholder="E-mail address"></input><br/>				
+				<input type="email" class="form-control" id="client_email" name="client_email" placeholder="E-mail address"></input><br/>				
 			</div>
 		</div>
 
 		<div class="row">
 			<div class="col-md-4 offset-md-2">
-				<label for="choose_id">Identification type</label>
-				<select name="choose_id" id="choose_id" class="form-control">
+				<label for="choose_identification_id">Identification type</label>
+				<select name="choose_identification_id" id="choose_identification_id" class="form-control">
 					<option selected value="0">Choose...</option>
 					{% for identification in identifications %}
-					<option value="{{ identification.id }}">{{ identification.id_type }}</option>
+					<option value="{{ identification.id }}">{{ identification.type }}</option>
 					{% endfor %}
 				</select>
 			</div>
 			<div class="col-md-4">
-				<label for="client_idno">Identification No.</label>
-				<input class="form-control" id="client_idno" name="client_idno" placeholder="ID Number"></input>
+				<label for="client_identification_number">Identification No.</label>
+				<input class="form-control" id="client_identification_number" name="client_identification_number" placeholder="ID Number"></input>
 			</div>
 		</div>
 		<br/>
