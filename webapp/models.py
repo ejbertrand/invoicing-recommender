@@ -31,6 +31,7 @@ class Client (db.Model):
 	email = db.Column(db.String(100))
 	identification_id = db.Column(db.Integer, db.ForeignKey('identification.id'))
 	identification_number = db.Column(db.String(50))
+	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	client_transaction = db.relationship('Transaction')
 
 class Service (db.Model):

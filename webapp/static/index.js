@@ -17,7 +17,7 @@ function cleanForm()
 	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 
 	form.reset();
-	client_name.value = "";
+	client_name.value = 0;
 	payment_id.value = 0;
 	comments.value = "";
 	for (let i = 0; i < row_count; i++){
@@ -177,7 +177,7 @@ function addItem(){
 	var comments = document.getElementById("comments").value;
 
 	if (service_id == '0' || subservice_id == '0')
-		alert("Oops!\nPlease, choose a valid Service and Subservice combination.");
+		alert("Please, choose a valid Service and Subservice combination.");
 	else if (total == "" || isNaN(total))
 		alert("Please, insert a numerical value for the Total.");
 	else
@@ -234,6 +234,8 @@ function printInvoice(){
 				alert("Oops!\nThe account is $0.00!");
 			else if (json["flag"] == 3)
 				alert("Please, insert a numerical value for payment.");
+			else if (json["flag"] == 4)
+				alert("Sorry, there was an error printing the invoice. \nIf it happens again, please report to the administrator.");
 			else
 			{
 				window.open("/print-invoice", '_blank');
