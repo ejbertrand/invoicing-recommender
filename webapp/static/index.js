@@ -308,6 +308,54 @@ function cancelTransaction()
 	cleanForm();
 }
 
+/*******************************************************************/
+/* Function Name: 	printReceipt
+/* Purpose: 		Print a receipt in PDF
+/*******************************************************************/
+function printReceipt(pending_transaction_no)
+{
+	fetch("/set-receipt-info", {
+		method: "POST",
+		body: JSON.stringify({ pending_transaction_no: pending_transaction_no }),
+	})
+	.then(response => { 
+		window.open("/print-receipt", '_blank');
+	})
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	});
+}
+
+
+/*******************************************************************/
+/* Function Name: 	printReceipt
+/* Purpose: 		Print a receipt in PDF
+/*******************************************************************/
+function printReceipt(pending_transaction_no)
+{
+	window.open("/print-receipt?ptn=" + pending_transaction_no, '_blank');
+}
+
+
+/*******************************************************************/
+/* Function Name: 	payReceipt
+/* Purpose: 		Pay a receipt
+/*******************************************************************/
+function payReceipt(pending_transaction_no)
+{
+	fetch("/pay-receipt", {
+		method: "POST",
+		body: JSON.stringify({ pending_transaction_no: pending_transaction_no }),
+	  })
+	  .then(response => {
+		window.location.href = "/transactions-pending";
+	  })
+	  .catch(error => {
+		console.log('Error!');
+		console.error(error);
+	  });
+}
 
 
 

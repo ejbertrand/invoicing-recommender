@@ -52,6 +52,8 @@ class Transaction (db.Model):
 	payment = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	comment = db.Column(db.String(600))
+	state = db.Column(db.String(1))
+	type = db.Column(db.String(3))
 	transaction_details = db.relationship('Transaction_Details')
 
 class Transaction_Details (db.Model):

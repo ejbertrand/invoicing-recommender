@@ -111,13 +111,13 @@ def configure_identification():
 
 
 ###################################################################
-# Function:		show_transactions
-# Purpose:		Loads the Transactions page
-# Return vals: 	Rendered HTML of Transactions page
+# Function:		transactions_history
+# Purpose:		Loads the Transactions History page
+# Return vals: 	Rendered HTML of Transactions History page
 ###################################################################
-@views.route('/transactions')
+@views.route('/transactions-history')
 @login_required
-def show_transactions():
+def transactions_history():
 	transactions = (
 		db.session.query(
 			Transaction.id,
@@ -128,7 +128,8 @@ def show_transactions():
 			Transaction.account,
 			Transaction.payment,
 			Transaction.balance,
-			Transaction.comment
+			Transaction.comment,
+			Transaction.type,
 		)
 		.join(User)
 		.join(Payment)
@@ -136,7 +137,36 @@ def show_transactions():
 		.order_by(Transaction.id.asc())
 		.all()
 	)
-	return render_template("transactions.html", user = current_user, transactions = transactions)
+	return render_template("history.html", user = current_user, transactions = transactions)
+
+
+###################################################################
+# Function:		transactions_pending
+# Purpose:		Loads the Pending Transactions page
+# Return vals: 	Rendered HTML of Pending Transactions page
+###################################################################
+@views.route('/transactions-pending')
+@login_required
+def transactions_pending():
+	pending_transactions = (
+		db.session.query(
+			Transaction.id,
+			Transaction.date,
+			User.name,
+			Payment.type,
+			Client.name,
+			Transaction.account,
+			Transaction.payment,
+			Transaction.balance
+		)
+		.filter(Transaction.state == 'P')
+		.join(User)
+		.join(Payment)
+		.join(Client)
+		.order_by(Transaction.id.asc())
+		.all()
+	)
+	return render_template("pending.html", user = current_user, pending_transactions = pending_transactions)
 
 
 ###################################################################
@@ -364,9 +394,9 @@ def print_invoice():
 		formatted_balance = "{:,.2f}".format(round(session["balance"], 2))
 	
 		client_name = client.name
-		client_address = client.address #"87 Private St. Seattle, WA" # Need to retrieve from DB
-		client_email = client.email #"smith@gmail.com" # Need to retrieve from DB
-		client_main_phone = client.main_phone #"990-302-1898" # Need to retrieve from DB
+		client_address = client.address
+		client_email = client.email 
+		client_main_phone = client.main_phone 
 
 		rendered = render_template("invoice.html", invoice_number = session["invoice_number"], client_name = client_name, \
 			payment = payment[0][0], items = session["items_print"], account = formatted_account, payment_amount = formatted_payment, \
@@ -397,6 +427,10 @@ def close_transaction():
 		flag = 3
 	else:
 		try:
+			if (session["balance"] == 0):
+				session["transaction_state"] = 'C'
+			else:
+				session["transaction_state"] = 'P'
 			transaction = Transaction(
 				date = g_invoice_dt,
 				user_id = current_user.id,
@@ -404,8 +438,10 @@ def close_transaction():
 				client_id = session["client_id"],
 				account = session['account'],
 				payment = session["payment_amount"],
-				balance = session["balance"],
-				comment = session["comments"])
+				balance = -session["balance"],
+				comment = session["comments"],
+				state = session["transaction_state"],
+				type = "INV")
 			db.session.add(transaction)
 			for item in session["items"]:
 				detail = Transaction_Details(
@@ -425,6 +461,85 @@ def close_transaction():
 			print(e)
 	return jsonify({"flag": flag})
 
+
+###################################################################
+# Function:		print_receipt
+# Purpose:		Generate a PDF receipt
+# Return vals: 	A PDF receipt
+###################################################################
+@views.route('/print-receipt')
+@login_required
+def print_receipt():
+	try:
+		pending_transaction_no = request.args.get('ptn')
+
+		global g_utc_dt, g_invoice_dt
+		utc_dt = datetime.now(tz = g_utc)
+		g_invoice_dt = utc_dt.astimezone(pytz.timezone(g_timezone))  
+		day = g_invoice_dt.day
+		year = g_invoice_dt.year
+		months_dic = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July", \
+			8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+		month = months_dic[g_invoice_dt.month]
+		hour = 12 if (g_invoice_dt.hour % 12 == 0) else (g_invoice_dt.hour % 12)
+		period = "AM" if (g_invoice_dt.hour) < 12 else "PM"
+		minute = g_invoice_dt.minute
+		minute_formatted = str(minute) if minute > 9 else '0' + str(minute)
+		date = month + " " + str(day) + ", " + str(year)
+		time = str(hour) + ":" + minute_formatted + " " + period
+
+		transaction = db.session.query(Transaction).filter_by(id = pending_transaction_no).all()[0]
+		client = db.session.query(Client).filter_by(id = transaction.client_id).all()[0]
+		account = transaction.account
+		first_payment = transaction.payment
+		previous_balance = transaction.balance
+		second_payment = transaction.balance
+		total_balance = previous_balance - second_payment
+		receipt_number = db.session.query(func.max(Transaction.id)).all()[0][0] + 1
+
+		rendered = render_template("receipt.html", receipt_number = receipt_number,
+			invoice_number = pending_transaction_no, client_name = client.name, account = account,
+			first_payment = first_payment, previous_balance = previous_balance, second_payment = second_payment, 
+			total_balance = total_balance, date = date, time = time) 
+		pdf = pdfkit.from_string(rendered, False)
+		response = make_response(pdf)
+		response.headers['Content-Type'] = 'application/pdf'
+		response.headers['Content-Disposition'] = 'inline; filename=invoice.pdf'
+		return (response)
+	except Exception as e:
+		print(e)
+		return (e)
+
+
+###################################################################
+# Function:		pay_receipt
+# Purpose:		Pay a receipt
+# Return vals: 	Empty JSON
+###################################################################
+@views.route('/pay-receipt', methods = ["POST"])
+@login_required
+def pay_receipt():
+	receipt_dic = json.loads(request.data)
+	invoice_id = receipt_dic["pending_transaction_no"]
+
+	# 1. Update the Invoice transaction
+	invoice_transaction = db.session.query(Transaction).filter_by(id = invoice_id).all()[0]
+	invoice_transaction.state = 'C'
+	# 2. Register the receipt transaction
+	receipt_transaction = Transaction(
+				date = g_invoice_dt,
+				user_id = current_user.id,
+				payment_id = invoice_transaction.payment_id,
+				client_id = invoice_transaction.client_id,
+				account = 0,
+				payment = invoice_transaction.balance * (-1),
+				balance = invoice_transaction.balance * (-1),
+				comment = "PENDING BALANCE OF: INV-" + str(invoice_id),
+				state = "C",
+				type = "REC")
+	db.session.add(receipt_transaction)
+	db.session.commit()
+	return jsonify({})
 
 
 
