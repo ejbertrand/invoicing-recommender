@@ -2,6 +2,7 @@
 config.py
 services.sql
 invoice.html
+receipt.html
 
 # Type of files to ignore
 *.swp
