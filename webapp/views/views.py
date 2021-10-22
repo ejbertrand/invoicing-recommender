@@ -610,7 +610,7 @@ def delete_service():
 	service_id = service_dic['service_id']
 	service = Service.query.get(service_id)
 	if service:
-		Service.query.filter_by(id=service_id).delete()
+		Service.query.filter_by(service_parent_id=service_id).delete()
 		db.session.delete(service)
 		db.session.commit()
 		flash("Service deleted!", category = "success")
