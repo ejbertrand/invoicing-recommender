@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}
+	Pending Transactions
+{% endblock %}
+{% block content %}
+<br/>
+<h3 align="center">Pending Transactions</h3>
+<br/>
+<table class="table table-hover table-sm table-responsive-lg">
+	<thead class="thead-light text-center">
+	  <tr>
+		  <th scope="col">Invoice</th>
+		  <th scope="col">Date</th>
+		  <th scope="col">User</th>
+		  <th scope="col">Payment Method</th>
+		  <th scope="col">Client</th>
+		  <th scope="col">Account ($)</th>
+		  <th scope="col">Payment ($)</th>
+		  <th scope="col">Balance ($)</th>
+		  <th colspan=1>Actions</th>
+	  </tr>
+	</thead>
+  
+	<tbody class="text-center">
+		  {% for transaction in pending_transactions %}
+	  <tr>
+		  <td>INV-{{transaction[0]}}</td>	<!-- Invoice No -->
+		  <td>{{transaction[1]}}</td>		<!-- Date -->
+		  <td>{{transaction[2]}}</td>		<!-- User -->
+		  <td>{{transaction[3]}}</td>		<!-- Payment -->
+		  <td>{{transaction[4]}}</td>		<!-- Client -->
+		  <td>{{transaction[5]}}</td>		<!-- Account -->
+		  <td>{{transaction[6]}}</td>		<!-- Payment -->
+		  <td>{{transaction[7]}}</td>		<!-- Balance -->
+		  <td><button type="button" class="btn btn-warning" data-toggle="modal" 
+			data-target="#receipt-{{ transaction[0] }}">Pay</button>
+		  </td>
+	  </tr>
+		  {% endfor %}
+	</tbody>
+	
+  </table>
+
+<!-- Payment modals -->
+{% for transaction in pending_transactions %}
+<div class="modal fade" id="receipt-{{ transaction[0] }}" tabindex="-1" role="dialog"
+	aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<b>Please check</b>
+			</div>
+			<div class="modal-body" id="transaction-{{ transaction[0] }}-modal">
+				We are paying the invoice <b>INV-{{ transaction[0] }}</b> of <b>{{transaction[4]}}</b>  for the remaining <b>${{transaction[7]*(-1)}}.</b>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<a class="btn btn-warning btn-ok" onClick="printReceipt({{ transaction[0] }})">Print Receipt!</a>
+				<a class="btn btn-danger btn-ok" onClick="payReceipt({{ transaction[0] }})">Finish</a>
+			</div>
+		</div>
+	</div>
+</div>
+{% endfor %}
+
+
+{% endblock %}

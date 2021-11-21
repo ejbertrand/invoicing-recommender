@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block title %}
+	AT Center Inc.
+{% endblock %}
 {% block content %}
 <br/>
 {% if transaction_state == "INACTIVE" %}
@@ -167,7 +170,7 @@
 			<br/>
 			<button type="button" class="btn btn-secondary btn-block" onClick="printInvoice()"><b>Generate Invoice</b></button>
 			<br/>
-			<button type="button" class="btn btn-warning btn-block" onClick="closeTransaction()"><b>Close Transaction</b></button>
+			<button type="button" class="btn btn-warning btn-block" onClick="closeTransaction()"><b>Finish Transaction</b></button>
 			<br/>
 		</div>
 	</form>

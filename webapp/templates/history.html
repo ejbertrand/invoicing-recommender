@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% block title %}
-	Payment Methods
+	Transactions History
 {% endblock %}
 {% block content %}
 <br/>
 <h3 align="center">Transactions History</h3>
-
-<table class="table table-hover">
+<br/>
+<table class="table table-hover table-sm table-responsive-lg">
   <thead class="thead-light text-center">
     <tr>
-		<th scope="col">Invoice</th>
+		<th scope="col">Invoice / Receipt</th>
 		<th scope="col">Date</th>
 		<th scope="col">User</th>
       	<th scope="col">Payment Method</th>
       	<th scope="col">Client</th>
-		<th scope="col">Account</th>
+		<th scope="col">Account ($)</th>
+		<th scope="col">Payment ($)</th>
+		<th scope="col">Balance ($)</th>
 		<th scope="col">Comments</th>
     </tr>
   </thead>
@@ -22,13 +24,19 @@
   <tbody class="text-center">
 		{% for transaction in transactions %}
     <tr>
-    	<td>#{{transaction[0]}}</td>	<!-- Invoice No -->
+		{% if transaction[9] == "INV" %}
+			<td>INV-{{transaction[0]}}</td>	<!-- Invoice No -->
+		{% else %}
+			<td>REC-{{transaction[0]}}</td>	<!-- Invoice No -->
+		{% endif %}
 		<td>{{transaction[1]}}</td>		<!-- Date -->
 		<td>{{transaction[2]}}</td>		<!-- User -->
 		<td>{{transaction[3]}}</td>		<!-- Payment -->
 		<td>{{transaction[4]}}</td>		<!-- Client -->
-		<td>${{transaction[5]}}</td>		<!-- Account -->
-		<td>{{transaction[6]}}</td>		<!-- Comments -->
+		<td>{{transaction[5]}}</td>		<!-- Account -->
+		<td>{{transaction[6]}}</td>		<!-- Payment -->
+		<td>{{transaction[7]}}</td>		<!-- Balance -->
+		<td>{{transaction[8]}}</td>		<!-- Comments -->
     </tr>
 		{% endfor %}
   </tbody>

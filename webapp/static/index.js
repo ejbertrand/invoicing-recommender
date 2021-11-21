@@ -17,7 +17,7 @@ function cleanForm()
 	var account_cell = document.getElementById("items_table").getElementsByTagName('tfoot')[0].rows[0].cells[1];
 
 	form.reset();
-	client_name.value = "";
+	client_name.value = 0;
 	payment_id.value = 0;
 	comments.value = "";
 	for (let i = 0; i < row_count; i++){
@@ -177,7 +177,7 @@ function addItem(){
 	var comments = document.getElementById("comments").value;
 
 	if (service_id == '0' || subservice_id == '0')
-		alert("Oops!\nPlease, choose a valid Service and Subservice combination.");
+		alert("Please, choose a valid Service and Subservice combination.");
 	else if (total == "" || isNaN(total))
 		alert("Please, insert a numerical value for the Total.");
 	else
@@ -234,6 +234,8 @@ function printInvoice(){
 				alert("Oops!\nThe account is $0.00!");
 			else if (json["flag"] == 3)
 				alert("Please, insert a numerical value for payment.");
+			else if (json["flag"] == 4)
+				alert("Sorry, there was an error printing the invoice. \nIf it happens again, please report to the administrator.");
 			else
 			{
 				window.open("/print-invoice", '_blank');
@@ -306,6 +308,54 @@ function cancelTransaction()
 	cleanForm();
 }
 
+/*******************************************************************/
+/* Function Name: 	printReceipt
+/* Purpose: 		Print a receipt in PDF
+/*******************************************************************/
+function printReceipt(pending_transaction_no)
+{
+	fetch("/set-receipt-info", {
+		method: "POST",
+		body: JSON.stringify({ pending_transaction_no: pending_transaction_no }),
+	})
+	.then(response => { 
+		window.open("/print-receipt", '_blank');
+	})
+	.catch(error => {
+		console.log('Error!');
+		console.error(error);
+	});
+}
+
+
+/*******************************************************************/
+/* Function Name: 	printReceipt
+/* Purpose: 		Print a receipt in PDF
+/*******************************************************************/
+function printReceipt(pending_transaction_no)
+{
+	window.open("/print-receipt?ptn=" + pending_transaction_no, '_blank');
+}
+
+
+/*******************************************************************/
+/* Function Name: 	payReceipt
+/* Purpose: 		Pay a receipt
+/*******************************************************************/
+function payReceipt(pending_transaction_no)
+{
+	fetch("/pay-receipt", {
+		method: "POST",
+		body: JSON.stringify({ pending_transaction_no: pending_transaction_no }),
+	  })
+	  .then(response => {
+		window.location.href = "/transactions-pending";
+	  })
+	  .catch(error => {
+		console.log('Error!');
+		console.error(error);
+	  });
+}
 
 
 

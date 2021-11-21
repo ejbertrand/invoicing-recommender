@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>A simple, clean, and responsive HTML invoice template</title>
+		<style>
+			.invoice-box {
+				max-width: 800px;
+				margin: auto;
+				padding: 30px;
+				border: 1px solid #eee;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+				font-size: 16px;
+				line-height: 24px;
+				font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+				color: #555;
+			}
+			.invoice-box table {
+				width: 100%;
+				line-height: inherit;
+				text-align: left;
+			}
+			.invoice-box table td {
+				padding: 5px;
+				vertical-align: top;
+			}
+			.invoice-box table tr td:nth-child(2) {
+				text-align: right;
+			}
+			.invoice-box table tr.top table td {
+				padding-bottom: 20px;
+			}
+			.invoice-box table tr.top table td.title {
+				font-size: 45px;
+				line-height: 45px;
+				color: #333;
+			}
+			.invoice-box table tr.information table td {
+				padding-bottom: 40px;
+			}
+			.invoice-box table tr.heading td {
+				background: #eee;
+				border-bottom: 1px solid #ddd;
+				font-weight: bold;
+			}
+			.invoice-box table tr.details td {
+				padding-bottom: 20px;
+			}
+			.invoice-box table tr.item td {
+				border-bottom: 1px solid #eee;
+			}
+			.invoice-box table tr.item.last td {
+				border-bottom: none;
+			}
+			.invoice-box table tr.total td:nth-child(2) {
+				border-top: 2px solid #eee;
+				font-weight: bold;
+			}
+			@media only screen and (max-width: 600px) {
+				.invoice-box table tr.top table td {
+					width: 100%;
+					display: block;
+					text-align: center;
+				}
+				.invoice-box table tr.information table td {
+					width: 100%;
+					display: block;
+					text-align: center;
+				}
+			}
+			/** RTL **/
+			.invoice-box.rtl {
+				direction: rtl;
+				font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+			}
+			.invoice-box.rtl table {
+				text-align: right;
+			}
+			.invoice-box.rtl table tr td:nth-child(2) {
+				text-align: left;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="invoice-box">
+			<table cellpadding="0" cellspacing="0">
+				<tr class="top">
+					<td colspan="4">
+						<table>
+							<tr>
+								<td class="title">
+									AT Center, Inc.
+                  					
+								</td>
+								<td rowspan="2">
+									<br/><br/><br/><br/>
+									<h1>RECEIPT</h1>
+									<!-- <img src="https://img1.wsimg.com/isteam/ip/a9d1a0fc-c30f-48af-bc44-79ffd20ed301/logo/Carl.png/:/rs=h:160/qt=q:95" 
+										style="width: 100%; max-width: 150px" /> -->
+								</td>
+							</tr>
+							<tr>
+								<td>
+								6939 Scyene Road - Suite C, Dallas, TX, 75227<br/>
+								www.atcenterinc.com<br/>
+								underwriting@atcenterinc.com<br/>
+								(214) 388-0134 (Phone)<br/>
+								(214) 400-2089 (Whatsapp)<br/>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr class="information">
+					<td colspan="4">
+						<table style="width: 100%">
+							<colgroup>
+								<col style="width: 50%;">
+								<col style="width: 20%;">
+								<col style="width: 30%;">
+							</colgroup>
+							<tr>
+								<td>
+									<b>PAYMENT FROM:</b>
+									<hr/>
+									{{ client_name }}
+								</td>
+								<td>
+									<br/>
+									<b>Receipt No:</b><br/>
+									<b>Date and Time:</b><br/>
+								</td>
+								<td style="text-align: right">
+									<br/>
+									REC-{{receipt_number}}<br/>
+									{{ date }} <br/>
+									{{ time }}
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr class="heading">
+					<td colspan="1">Description</td>
+					<td style="text-align: right">Account</td>
+					<td style="text-align: right">First Payment</td>
+					<td style="text-align: right">Previous Balance</td>
+				</tr>
+
+				<tr class="item">
+					<td colspan="1">PENDING BALANCE OF: INV-{{ invoice_number }} </td>
+					<td style="text-align: right"> $ {{ account }} </td>
+					<td style="text-align: right"> $ {{ first_payment }} </td>
+					<td style="text-align: right"> $ {{ previous_balance * (-1) }} </td>
+				</tr>
+
+				<tr>
+					<td rowspan="2" colspan="2" style="text-align: center; vertical-align: middle;">
+						<b>Thank you for trusting in us!</b>
+					<td style="text-align: right;">2nd Payment: </td>
+					<td style="text-align: right;"> $ {{ second_payment * (-1) }}</td>
+				</tr>
+				<tr class="total">
+					<td style="text-align: right;"><b>Total Balance:</b></td>
+					<td style="text-align: right;">  $ {{ total_balance }}</td>
+				</tr>
+
+			</table>
+
+		</div>
+	</body>
+</html>

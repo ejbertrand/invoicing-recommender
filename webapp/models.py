@@ -31,6 +31,7 @@ class Client (db.Model):
 	email = db.Column(db.String(100))
 	identification_id = db.Column(db.Integer, db.ForeignKey('identification.id'))
 	identification_number = db.Column(db.String(50))
+	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	client_transaction = db.relationship('Transaction')
 
 class Service (db.Model):
@@ -51,6 +52,8 @@ class Transaction (db.Model):
 	payment = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	balance = db.Column(db.Numeric(precision = 7, scale = 2, asdecimal = True))
 	comment = db.Column(db.String(600))
+	state = db.Column(db.String(1))
+	type = db.Column(db.String(3))
 	transaction_details = db.relationship('Transaction_Details')
 
 class Transaction_Details (db.Model):
