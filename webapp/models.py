@@ -2,6 +2,15 @@ from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 
+#################################################
+#			Naming Conventions					#
+#												#
+#		Database name:	lowercase				#
+#		Table names:	PascalCase				#
+#		Column names:	snake_case				#
+#												#
+#################################################
+
 class User (db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
 	email = db.Column(db.String(100), unique = True)
@@ -39,7 +48,7 @@ class Service (db.Model):
 	type = db.Column(db.String(100))
 	service_parent_id = db.Column(db.Integer, db.ForeignKey('service.id'))
 	active = db.Column(db.Integer)
-	service_transaction = db.relationship('Transaction_Details')
+	service_transaction = db.relationship('TransactionDetails')
 	service_parent = db.relationship("Service", remote_side=[id])
 
 class Transaction (db.Model):
@@ -54,9 +63,9 @@ class Transaction (db.Model):
 	comment = db.Column(db.String(600))
 	state = db.Column(db.String(1))
 	type = db.Column(db.String(3))
-	transaction_details = db.relationship('Transaction_Details')
+	transaction_details = db.relationship('TransactionDetails')
 
-class Transaction_Details (db.Model):
+class TransactionDetails (db.Model):
 	id = db.Column(db.Integer, primary_key = True)
 	transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
 	service_id = db.Column(db.Integer)
