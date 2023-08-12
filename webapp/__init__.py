@@ -14,7 +14,8 @@ def create_app():
 	app = Flask(__name__)
 	app.config.from_object('config.DevelopmentConfig')
 	db.init_app(app)
-	#create_database(app)
+	with app.app_context():
+		db.create_all()
 	mail.init_app(app)
 	#------- Blueprints registration ----------------#
 	app.register_blueprint(views, url_prefix = '/')

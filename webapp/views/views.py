@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text as SQLQuery
 from sqlalchemy.sql.expression import func
-from ..models import Service, Payment, Transaction, User, Identification, Client, Transaction_Details
+from ..models import Service, Payment, Transaction, User, Identification, Client, TransactionDetails
 from .. import db
 import json
 import pdfkit
@@ -46,7 +46,7 @@ def home():
 				payments = payments, transaction_state = session["transaction_state"], \
 				clients = clients)
 	except KeyError:
-		print("\nOops: A KeyError exception was raised. (Probably no Clients, Services and Payments registered yet.\n")
+		print("\nOops: A KeyError exception was raised. Probably no clients, services and/or payment forms registered yet?\n")
 		return redirect(url_for('auth.logout'))
 
 
@@ -444,7 +444,7 @@ def close_transaction():
 				type = "INV")
 			db.session.add(transaction)
 			for item in session["items"]:
-				detail = Transaction_Details(
+				detail = TransactionDetails(
 					transaction_id = session["invoice_number"],
 					service_id = item[0],
 					subservice_id = item[1],
